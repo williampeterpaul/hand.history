@@ -5,10 +5,8 @@ using System.Text;
 
 namespace hand.history.Services
 {
-    public interface IEvaluator<THand, TCards> 
-        where THand : Hand 
-        where TCards : IEnumerable<Card>
+    public interface IEvaluator<TCards> where TCards : IEnumerable<Card>
     {
-        Hand.RankType Evalute(THand hand, TCards cards);
+        Hand.RankType Evalute(TCards cards);
     }
 }
