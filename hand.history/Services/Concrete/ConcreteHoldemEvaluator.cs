@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace hand.history.Services
+namespace hand.history.Services.Concrete
 {
     public class ConcreteHoldemEvaluator : IEvaluator<IEnumerable<Card>>
     {
