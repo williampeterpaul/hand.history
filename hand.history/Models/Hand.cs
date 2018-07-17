@@ -6,18 +6,21 @@ namespace hand.history.Models
 {
     public class Hand : IComparable<Hand>
     {
+        public RankType Rank { get; set; }
+
         public ICollection<Card> Cards { get; set; }
 
         public int CompareTo(Hand other)
         {
-            throw new NotImplementedException();
+            if (Rank < other.Rank) return -1;
+            if (Rank > other.Rank) return 1;
+
+            return 0;
         }
 
-        public int CompareTo(Hand other, ICollection<Card> community)
+        public enum RankType
         {
-            throw new NotImplementedException();
+            HighCard, Pair, TwoPair, ThreeOfAKind, Straight, Flush, FullHouse, FourOfAKind, StraightFlush, RoyalFlush
         }
-
-        public int CompareTo(Hand other, Round round) => CompareTo(other, round.Community);
     }
 }

@@ -6,8 +6,8 @@ namespace hand.history.Services
 {
     public interface IParser
     {
-        string ParseString();
-        string ParseDouble();
-        string ParseInteger();
+        string ParseString(string value, string pattern);
+        double ParseDouble(string value, string pattern);
+        int ParseInteger(string value, string pattern);
     }
 }

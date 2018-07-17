@@ -1,5 +1,4 @@
-﻿using hand.history.Models.Enumerations;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -7,8 +6,8 @@ namespace hand.history.Models
 {
     public class Card : IComparable<Card>
     {
-        public Rank Rank { get; set; }
-        public Suit Suit { get; set; }
+        public RankType Rank { get; set; }
+        public SuitType Suit { get; set; }
 
         public int CompareTo(Card other)
         {
@@ -16,6 +15,16 @@ namespace hand.history.Models
             if (Rank > other.Rank) return 1;
 
             return 0;
+        }
+
+        public enum RankType
+        {
+            Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Jack, Queen, King, Ace
+        }
+
+        public enum SuitType
+        {
+            Club, Diamond, Heart, Spade
         }
     }
 }

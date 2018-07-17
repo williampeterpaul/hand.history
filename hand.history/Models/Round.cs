@@ -8,9 +8,13 @@ namespace hand.history.Models
     {
         public decimal Pot { get; set; }
 
+        public StreetType Street { get; set; }
         public ICollection<Card> Community { get; }
+        public ICollection<Action> Actions { get; set; }
 
-        public ICollection<Player> ActivePlayers { get; }
-        public ICollection<Player> DeadPlayers { get; }
+        public enum StreetType
+        {
+            Preflop, Flop, Turn, River
+        }
     }
 }
