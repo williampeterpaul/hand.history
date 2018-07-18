@@ -3,6 +3,7 @@ using hand.history.Services;
 using hand.history.Services.Concrete;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using static hand.history.Models.Card;
 
 namespace hand.history
@@ -25,21 +26,13 @@ namespace hand.history
         {
             Console.WriteLine("Hello World!");
 
-            var evaluator = new ConcreteHoldemEvaluator();
+            var directory = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "/PokerStars.UK/HandHistory/WI7ZZ";
 
-            var list = new List<Card> {
-                new Card { Suit = SuitType.Spade, Rank = RankType.Seven },
-                new Card { Suit = SuitType.Spade, Rank = RankType.Jack },
-                new Card { Suit = SuitType.Heart, Rank = RankType.Two },
-                new Card { Suit = SuitType.Heart, Rank = RankType.Five },
-                new Card { Suit = SuitType.Heart, Rank = RankType.Three },
-                new Card { Suit = SuitType.Spade, Rank = RankType.Four },
-                new Card { Suit = SuitType.Spade, Rank = RankType.Ten },
-            };
+            var poller = new ConcreteDirectoryPoller(directory);
 
-            var result = evaluator.Evalute(list);
+            poller.Run();
 
-            Console.WriteLine(result);
+            while (Console.Read() != 'q') ;
         }
     }
 }

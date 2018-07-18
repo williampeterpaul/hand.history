@@ -6,7 +6,7 @@ namespace hand.history.Services
 {
     public interface IPoller
     {
-        bool HasChanges(string path);
-        string GetChanges(string path);
+        void Run();
+        string GetChanges();
     }
 }
