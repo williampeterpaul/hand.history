@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using static hand.history.Models.Round;
 
 namespace hand.history.Models
 {
@@ -20,7 +21,7 @@ namespace hand.history.Models
         public ICollection<Player> Players { get; }
         public ICollection<Round> Rounds { get; }
 
-        public Round.StreetType EndStreet => (Round.StreetType)StreetCount;
+        public StreetType EndStreet => (StreetType)StreetCount;
         public int StreetCount => Rounds.GroupBy(x => x.Street).Count();
         public int RoundCount => Rounds.Count();
         public int PlayerCount => Players.Count();
