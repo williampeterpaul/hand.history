@@ -1,5 +1,9 @@
-﻿using hand.history.Services;
+﻿using hand.history.Models;
+using hand.history.Services;
+using hand.history.Services.Concrete;
 using System;
+using System.Collections.Generic;
+using static hand.history.Models.Card;
 
 namespace hand.history
 {
@@ -20,6 +24,22 @@ namespace hand.history
         public static void Main(string[] args)
         {
             Console.WriteLine("Hello World!");
+
+            var evaluator = new ConcreteHoldemEvaluator();
+
+            var list = new List<Card> {
+                new Card { Suit = SuitType.Spade, Rank = RankType.Seven },
+                new Card { Suit = SuitType.Spade, Rank = RankType.Jack },
+                new Card { Suit = SuitType.Heart, Rank = RankType.Two },
+                new Card { Suit = SuitType.Heart, Rank = RankType.Five },
+                new Card { Suit = SuitType.Heart, Rank = RankType.Three },
+                new Card { Suit = SuitType.Spade, Rank = RankType.Four },
+                new Card { Suit = SuitType.Spade, Rank = RankType.Ten },
+            };
+
+            var result = evaluator.Evalute(list);
+
+            Console.WriteLine(result);
         }
     }
 }

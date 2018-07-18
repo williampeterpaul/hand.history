@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace hand.history.Services
+namespace hand.history.Services.Concrete
 {
     public class ConcreteRegexParser : IParser
     {

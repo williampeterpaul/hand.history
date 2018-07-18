@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using static hand.history.Models.Hand;
 
-namespace hand.history.Services.Concrete
+namespace hand.history.Services
 {
     public interface IEvaluator<TCards> where TCards : IEnumerable<Card>
     {
