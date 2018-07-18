@@ -5,33 +5,37 @@ using System.Text;
 
 namespace hand.history.Services.Concrete
 {
-    public class DirectoryWatcher : IWatcher
+    public sealed class DirectoryWatcher : IWatcher
     {
+        private IDictionary<string, Stream> Streams { get; } = new Dictionary<string, Stream>();
+
         public void Run(string path)
         {
-            var watcher = new FileSystemWatcher
-            {
-                Path = path,
-                NotifyFilter = NotifyFilters.FileName | NotifyFilters.Size,
-                Filter = "*.txt"
-            };
-
+            var watcher = new FileSystemWatcher();
+            watcher.Path = path;
+            watcher.Filter = "*.txt";
+            watcher.NotifyFilter = NotifyFilters.Size;
             watcher.Changed += new FileSystemEventHandler(OnChanged);
             watcher.EnableRaisingEvents = true;
         }
 
-        private void OnChanged(object source, FileSystemEventArgs e) => GetChanges(e.FullPath);
-
         public string GetChanges(string path)
         {
-            var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            var result = SetStream(path);
+            var stream = Streams[path];
 
-            using (var sr = new StreamReader(fs))
+            using (var reader = new StreamReader(stream))
             {
-                Console.WriteLine(sr.ReadToEnd());
+                Console.WriteLine(reader.ReadToEnd());
             }
 
             return string.Empty;
         }
+
+        private void OnChanged(object source, FileSystemEventArgs e) => GetChanges(e.FullPath);
+
+        private bool GetStream(string path, out Stream stream) => Streams.TryGetValue(path, out stream);
+
+        private bool SetStream(string path) => Streams.TryAdd(path, new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
     }
 }

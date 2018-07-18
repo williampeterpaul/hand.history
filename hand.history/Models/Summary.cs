@@ -9,6 +9,7 @@ namespace hand.history.Models
     public class Summary
     {
         public decimal Id { get; }
+
         public string Title { get; set; }
         public string Game { get; set; }
         public string Currency { get; set; }

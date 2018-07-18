@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 
 namespace hand.history.Services.Concrete
 {
-    public class RegexParser : IParser
+    public sealed class RegexParser : IParser
     {
         public string ParseString(string value, string pattern) => Parse<string>(value, pattern);
 
