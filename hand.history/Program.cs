@@ -10,12 +10,12 @@ namespace hand.history
 {
     public class Program
     {
-        public IPoller Poller { get; }
+        public IWatcher Poller { get; }
         public IReader Reader { get; }
         public IParser Parser { get; }
         public ILogger Logger { get; }
 
-        public Program(IPoller poller, IReader reader, IParser parser, ILogger logger)
+        public Program(IWatcher poller, IReader reader, IParser parser, ILogger logger)
         {
             // check for updates
             // read new updates
@@ -28,9 +28,9 @@ namespace hand.history
 
             var directory = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "/PokerStars.UK/HandHistory/WI7ZZ";
 
-            var poller = new ConcreteDirectoryPoller(directory);
+            var poller = new DirectoryWatcher();
 
-            poller.Run();
+            poller.Run(directory);
 
             while (Console.Read() != 'q') ;
         }

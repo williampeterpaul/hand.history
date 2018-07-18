@@ -8,7 +8,7 @@ using static hand.history.Models.Hand;
 
 namespace hand.history.Services.Concrete
 {
-    public sealed class ConcreteHoldemEvaluator : IEvaluator<IEnumerable<Card>>
+    public sealed class HoldemEvaluator : IEvaluator<IEnumerable<Card>>
     {
         public IReadOnlyDictionary<RankType, Func<IEnumerable<Card>, bool>> Classifier = new Dictionary<RankType, Func<IEnumerable<Card>, bool>>
         {

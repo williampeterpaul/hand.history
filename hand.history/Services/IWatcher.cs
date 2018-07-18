@@ -4,9 +4,9 @@ using System.Text;
 
 namespace hand.history.Services
 {
-    public interface IPoller
+    public interface IWatcher
     {
-        void Run();
-        string GetChanges();
+        void Run(string path);
+        string GetChanges(string path);
     }
 }
