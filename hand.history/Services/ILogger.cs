@@ -6,6 +6,6 @@ namespace hand.history.Services
 {
     public interface ILogger
     {
-        void Log();
+        void Log(string message);
     }
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using hand.history.Services;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,18 +7,18 @@ using static hand.history.Models.Round;
 
 namespace hand.history.Models
 {
-    public class Summary
+    public class Table
     {
-        public decimal Id { get; }
-
+        public double Id { get; set; }
+        public double TournamentId { get; set; }
         public string Title { get; set; }
         public string Game { get; set; }
         public string Currency { get; set; }
-
-        public decimal Big { get; set; }
-        public decimal Small { get; set; }
-        public decimal TotalPot { get; set; }
-        public decimal TotalRake { get; set; }
+        public double Big { get; set; }
+        public double Small { get; set; }
+        public double TotalPot { get; set; }
+        public double TotalRake { get; set; }
+        public int Seats { get; set; }
 
         public DateTime Date { get; set; }
 

@@ -5,11 +5,11 @@ using System.Text;
 
 namespace hand.history.Services.Concrete
 {
-    public sealed class DirectoryWatcher : IWatcher
+    public sealed class FileWatcher : IWatcher
     {
         private IReader Reader { get; }
 
-        public DirectoryWatcher(IReader reader)
+        public FileWatcher(IReader reader)
         {
             Reader = reader;
         }

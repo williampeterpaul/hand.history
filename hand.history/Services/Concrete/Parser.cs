@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 
 namespace hand.history.Services.Concrete
 {
-    public sealed class RegexParser : IParser
+    public sealed class Parser : IParser
     {
         public string ParseString(string value, string pattern) => Parse<string>(value, pattern);
 
@@ -18,6 +18,11 @@ namespace hand.history.Services.Concrete
             var result = Regex.Match(value, pattern).Value;
 
             return (Type) Convert.ChangeType(result, typeof(Type));
+        }
+
+        public DateTime ParseDateTime(string value, string pattern)
+        {
+            return new DateTime();
         }
 
     }

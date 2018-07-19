@@ -9,5 +9,6 @@ namespace hand.history.Services
         string ParseString(string value, string pattern);
         double ParseDouble(string value, string pattern);
         int ParseInteger(string value, string pattern);
+        DateTime ParseDateTime(string value, string pattern);
     }
 }

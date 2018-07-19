@@ -4,6 +4,7 @@ using hand.history.Services.Concrete;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using static hand.history.Models.Card;
 
 namespace hand.history
@@ -25,12 +26,14 @@ namespace hand.history
 
         public static void Main(string[] args)
         {
-            var directory = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "/PokerStars.UK/HandHistory/WI7ZZ";
-            var watcher = new DirectoryWatcher(new FileReader());
+            //var directory = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "/PokerStars.UK/HandHistory/WI7ZZ";
+            var file = Environment.CurrentDirectory + "/HH20180715 Aludra - $0.05-$0.10 - USD No Limit Hold'em.txt";
 
-            watcher.Run(directory);
+            var data = new FileReader().Read(file).Split(Environment.NewLine  + Environment.NewLine + Environment.NewLine + Environment.NewLine).First();
 
-            while (Console.Read() != 0) ;
+            var mapper = new PokerstarsMapper(new Parser(), data).Map();
+
+            Console.WriteLine(mapper);
         }
     }
 }

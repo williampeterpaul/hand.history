@@ -6,7 +6,7 @@ namespace hand.history.Models
 {
     public class Round
     {
-        public decimal Pot { get; set; }
+        public double Pot { get; set; }
 
         public StreetType Street { get; set; }
         public ICollection<Card> Community { get; }
