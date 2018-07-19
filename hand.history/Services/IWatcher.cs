@@ -7,6 +7,5 @@ namespace hand.history.Services
     public interface IWatcher
     {
         void Run(string path);
-        string GetChanges(string path);
     }
 }

@@ -7,9 +7,7 @@ namespace hand.history.Models
     public class Action
     {
         public Player Player { get; set; }
-
         public VerbType Verb { get; set; }
-
         public decimal Amount { get; set; }
 
         public enum VerbType

@@ -6,8 +6,8 @@ using static hand.history.Models.Hand;
 
 namespace hand.history.Services
 {
-    public interface IEvaluator<TCards> where TCards : IEnumerable<Card>
+    public interface IEvaluator
     {
-        RankType Evalute(TCards cards);
+        RankType Evalute(IEnumerable<Card> cards);
     }
 }

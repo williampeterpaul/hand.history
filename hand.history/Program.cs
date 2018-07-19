@@ -14,8 +14,9 @@ namespace hand.history
         public IReader Reader { get; }
         public IParser Parser { get; }
         public ILogger Logger { get; }
+        public IEvaluator Evaluator { get; }
 
-        public Program(IWatcher watcher, IReader reader, IParser parser, ILogger logger)
+        public Program(IWatcher watcher, IReader reader, IParser parser, ILogger logger, IEvaluator evaluator)
         {
             // check for updates
             // read new updates
@@ -25,7 +26,7 @@ namespace hand.history
         public static void Main(string[] args)
         {
             var directory = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "/PokerStars.UK/HandHistory/WI7ZZ";
-            var watcher = new DirectoryWatcher();
+            var watcher = new DirectoryWatcher(new FileReader());
 
             watcher.Run(directory);
 

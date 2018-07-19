@@ -19,6 +19,8 @@ namespace hand.history.Models
         public decimal TotalPot { get; set; }
         public decimal TotalRake { get; set; }
 
+        public DateTime Date { get; set; }
+
         public ICollection<Player> Players { get; }
         public ICollection<Round> Rounds { get; }
 

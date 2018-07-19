@@ -8,9 +8,9 @@ using static hand.history.Models.Hand;
 
 namespace hand.history.Services.Concrete
 {
-    public sealed class HoldemEvaluator : IEvaluator<IEnumerable<Card>>
+    public sealed class HoldemEvaluator : IEvaluator
     {
-        private IReadOnlyDictionary<RankType, Func<IEnumerable<Card>, bool>> Classifier = new Dictionary<RankType, Func<IEnumerable<Card>, bool>>
+        private IReadOnlyDictionary<RankType, Func<IEnumerable<Card>, bool>> Classifier { get; } = new Dictionary<RankType, Func<IEnumerable<Card>, bool>>
         {
             { RankType.RoyalFlush,      cards => cards.SequentialValues(5).GroupBy(card => card.Suit).Any(group => group.Count() > 4) && cards.Max(x => x.Rank).Equals(Card.RankType.Ace) },
             { RankType.StraightFlush,   cards => cards.SequentialValues(5).GroupBy(card => card.Suit).Any(group => group.Count() > 4) },

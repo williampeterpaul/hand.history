@@ -7,7 +7,6 @@ namespace hand.history.Models
     public class Hand : IComparable<Hand>
     {
         public RankType Rank { get; set; }
-
         public ICollection<Card> Cards { get; set; }
 
         public int CompareTo(Hand other)

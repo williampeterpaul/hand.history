@@ -6,10 +6,12 @@ namespace hand.history.Models
 {
     public class Player
     {
+        public decimal Id { get; }
+
         public string Username { get; }
-        public decimal Stack { get; set; }
-        public int Position { get; set; }
         public bool Alive { get; set; }
+        public int Position { get; set; }
+        public decimal Stack { get; set; }
 
         public Hand Hand { get; }
     }
