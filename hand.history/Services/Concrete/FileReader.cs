@@ -16,7 +16,7 @@ namespace hand.history.Services.Concrete
 
         public string Read(string path)
         {
-            var result = CreateStream(path);
+            var exists = CreateStream(path);
             var stream = Streams[path];
 
             using (var reader = new StreamReader(stream))

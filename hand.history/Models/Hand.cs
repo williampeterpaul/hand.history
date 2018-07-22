@@ -7,7 +7,7 @@ namespace hand.history.Models
     public class Hand : IComparable<Hand>
     {
         public RankType Rank { get; set; }
-        public ICollection<Card> Cards { get; set; }
+        public ICollection<Card> Cards { get; set; } // This value should include all community cards
 
         public int CompareTo(Hand other)
         {
@@ -20,6 +20,11 @@ namespace hand.history.Models
         public enum RankType
         {
             HighCard, Pair, TwoPair, ThreeOfAKind, Straight, Flush, FullHouse, FourOfAKind, StraightFlush, RoyalFlush
+        }
+
+        public enum DrawType // Should this be ordered by EV? likelihood & rank
+        {
+            GutShot, BackdoorFlush, OpenEnded, Flush
         }
     }
 }

@@ -13,16 +13,13 @@ namespace hand.history.Services.Concrete
 
         public int ParseInteger(string value, string pattern) => Parse<int>(value, pattern);
 
+        public DateTime ParseDateTime(string value, string pattern) => DateTime.Parse(Parse<string>(value, pattern));
+
         private Type Parse<Type>(string value, string pattern)
         {
             var result = Regex.Match(value, pattern).Value;
 
             return (Type) Convert.ChangeType(result, typeof(Type));
-        }
-
-        public DateTime ParseDateTime(string value, string pattern)
-        {
-            return new DateTime();
         }
 
     }

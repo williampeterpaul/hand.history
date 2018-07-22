@@ -5,8 +5,8 @@ using System.Text;
 
 namespace hand.history.Services
 {
-    public interface IMapper<TSummary> where TSummary : Table
+    public interface IMapper<TTable> where TTable : Table
     {
-        TSummary Map();
+        TTable Map();
     }
 }
