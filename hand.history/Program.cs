@@ -39,6 +39,8 @@ namespace hand.history
             //var logger = new Logger();
             //logger.LogInformation("Hello world!", new { Test = "Test", Whatever = "Another Test"});
 
+            DateTime.Parse("");
+
             var file = Environment.CurrentDirectory + "/HH20180715 Aludra - $0.05-$0.10 - USD No Limit Hold'em.txt";
 
             var data = new FileReader().Read(file).Split(Environment.NewLine + Environment.NewLine + Environment.NewLine + Environment.NewLine).First();
