@@ -8,11 +8,9 @@ namespace hand.history.Models
     {
         public double Id { get; }
 
-        public string Username { get; }
+        public string Username { get; set; }
         public bool Alive { get; set; }
         public int Position { get; set; }
         public double Stack { get; set; }
-
-        public Hand Hand { get; }
     }
 }

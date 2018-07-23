@@ -10,6 +10,7 @@ namespace hand.history.Models
     public class Table
     {
         public double Id { get; set; }
+
         public double TournamentId { get; set; }
         public string Title { get; set; }
         public string Game { get; set; }

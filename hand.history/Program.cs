@@ -18,23 +18,27 @@ namespace hand.history
         public IWatcher Watcher { get; }
         public IReader Reader { get; }
         public IParser Parser { get; }
+        public IMapper<Table> Mapper { get; }
         public ILogger Logger { get; }
         public IEvaluator Evaluator { get; }
 
-        public Program(IWatcher watcher, IReader reader, IParser parser, ILogger logger, IEvaluator evaluator)
+        public Program(IWatcher watcher, IReader reader, IParser parser, IMapper<Table> mapper, ILogger logger, IEvaluator evaluator)
         {
+            var directory = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "/PokerStars.UK/HandHistory/WI7ZZ";
 
-            // check for updates
-            // read new updates
-            // parse updates to summary
+            Watcher = watcher;
+            Reader = reader;
+            Parser = parser;
+            Mapper = mapper;
+            Logger = logger;
+            Evaluator = evaluator;
         }
 
         public static void Main(string[] args)
         {
-            var logger = new Logger();
-            logger.LogInformation("Hello world!", new { Test = "Test", Whatever = "Another Test"});
+            //var logger = new Logger();
+            //logger.LogInformation("Hello world!", new { Test = "Test", Whatever = "Another Test"});
 
-            //var directory = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "/PokerStars.UK/HandHistory/WI7ZZ";
             var file = Environment.CurrentDirectory + "/HH20180715 Aludra - $0.05-$0.10 - USD No Limit Hold'em.txt";
 
             var data = new FileReader().Read(file).Split(Environment.NewLine + Environment.NewLine + Environment.NewLine + Environment.NewLine).First();

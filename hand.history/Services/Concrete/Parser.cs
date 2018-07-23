@@ -19,6 +19,8 @@ namespace hand.history.Services.Concrete
         {
             var result = Regex.Match(value, pattern).Value;
 
+            if (string.IsNullOrWhiteSpace(result)) return default(Type);
+
             return (Type) Convert.ChangeType(result, typeof(Type));
         }
 

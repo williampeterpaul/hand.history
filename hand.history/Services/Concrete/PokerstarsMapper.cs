@@ -1,4 +1,5 @@
 ﻿using hand.history.Models;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -17,46 +18,70 @@ namespace hand.history.Services.Concrete
             Text = text.Split(Environment.NewLine);
         }
 
-        private double MapId => Parser.ParseDouble(Text[0], "(?<=Hand #)[0-9]{10,}");
+        private double Id => Parser.ParseDouble(Text[0], "(?<=Hand #)[0-9]{10,}");
+        private double TournamentId => Parser.ParseDouble(Text[0], "(?<=Tournament #)[0-9]{10,}");
+        private string Title => Parser.ParseString(Text[1], "'(.*?)'");
+        private string Game => Parser.ParseString(Text[0], "(Hold'em No Limit)");
+        private string Currency => Parser.ParseString(Text[0], "[$]|[£]|[€]");
+        private double Big => Parser.ParseDouble(Text[9], "(?<=big blind [$]|[£]|[€])([+-]?\\d*\\.\\d+)(?![-+0-9\\.])");
+        private double Small => Parser.ParseDouble(Text[8], "(?<=small blind [$]|[£]|[€])([+-]?\\d*\\.\\d+)(?![-+0-9\\.])");
+        private double TotalPot => Parser.ParseDouble(Text[35], "(?<=Total pot [$]|[£]|[€])([+-]?\\d*\\.\\d+)(?![-+0-9\\.])");
+        private double TotalRake => Parser.ParseDouble(Text[35], "(?<=Rake [$]|[£]|[€])([+-]?\\d*\\.\\d+)(?![-+0-9\\.])");
+        private int Seats => Parser.ParseInteger(Text[1], "(\\d+)(?=-max)");
 
-        private double MapTournamentId => Parser.ParseDouble(Text[0], "(?<=Tournament #)[0-9]{10,}");
+        private DateTime Date => Parser.ParseDateTime(Text[0], @"(?<=\[)(.*?)(?=ET\])");
 
-        private string MapTitle => Parser.ParseString(Text[1], "'(.*?)'");
+        private ICollection<Player> Players
+        {
+            get
+            {
+                var result = new List<Player>();
 
-        private string MapGame => Parser.ParseString(Text[0], "(Hold'em No Limit)");
+                var usernamePattern = @"(?<=Seat [0-9]+: )(.+)(?=\()";
+                var stackPattern = "";
 
-        private string MapCurrency => Parser.ParseString(Text[0], "[$]|[£]|[€]");
+                for (int i = 2; i < 2 + Seats; i++)
+                {
+                    var current = Text[i];
+                    var username = Parser.ParseString(current, usernamePattern);
+                    var stack = Parser.ParseDouble(current, stackPattern);
 
-        private DateTime MapDate => Parser.ParseDateTime(Text[0], @"(?<=\[)(.*?)(?=ET\])");
+                    Console.WriteLine("player " + username);
 
-        private double MapBig => Parser.ParseDouble(Text[9], @"(?:big blind)(.*)");
+                    result.Add(new Player { Username = username, Stack = stack, Alive = true, Position = i});
+                }
 
-        private double MapSmall => Parser.ParseDouble(Text[8], @"(?<=big blind)(\d+)");
 
-        private double MapTotalPot => Parser.ParseDouble(Text[0], "");
+                return result;
+            }
+        }
 
-        private double MapTotalRake => Parser.ParseDouble(Text[0], "");
+        private ICollection<Round> Rounds
+        {
+            get
+            {
+                var result = new List<Round>();
 
-        private int MapSeats => Parser.ParseInteger(Text[0], "");
-
-        //private ICollection<Player> MapPlayers =>
-
-        //private ICollection<Round> MapRounds =>
+                return result;
+            }
+        }
 
         public Table Map()
         {
-            return new Table
-            {
-                Id = MapId,
-                Title = MapTitle,
-                Game = MapGame,
-                Currency = MapCurrency,
-                Big = MapBig,
-                Small = MapSmall,
-                //TotalPot = MapTotalPot,
-                //TotalRake = MapTotalRake
-                Date = MapDate,
-            };
+            Console.WriteLine("MapId " + Id);
+            Console.WriteLine("MapCurrency " + Currency);
+            Console.WriteLine("MapDate " + Date);
+            Console.WriteLine("MapTitle " + Title);
+            Console.WriteLine("BB " + Big);
+            Console.WriteLine("SB " + Small);
+            Console.WriteLine("MapTotalPot " + TotalPot);
+            Console.WriteLine("MapTotalRake " + TotalRake);
+            Console.WriteLine("MapSeats " + Seats);
+
+            Console.WriteLine("Players " + Players);
+
+
+            return new Table();
         }
     }
 }

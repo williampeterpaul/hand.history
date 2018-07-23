@@ -23,16 +23,30 @@ namespace hand.history.Services.Concrete
             _logger = LogManager.GetLogger(typeof(Logger));
         }
 
-        public void Log(Level level, string message)
+        public Logger(string configuration)
         {
-            _logger.Debug(message);
+            XmlConfigurator.Configure(LogManager.GetRepository(Assembly.GetEntryAssembly()), new FileInfo(configuration));
+
+            _logger = LogManager.GetLogger(typeof(Logger));
         }
 
         public void Log(Level level, string message, object obj)
         {
             var serialized = JsonConvert.SerializeObject(obj);
 
-            _logger.Debug($"message: {message} object:{serialized}");
+            Log(level, $"message: {message} object:{serialized}");
+        }
+
+        public void Log(Level level, string message)
+        {
+            switch (level)
+            {
+                case Level.Debug: _logger.Debug(message); break;
+                case Level.Information: _logger.Info(message); break;
+                case Level.Warning: _logger.Warn(message); break;
+                case Level.Error: _logger.Error(message); break;
+                case Level.Fatal: _logger.Fatal(message); break;
+            }
         }
 
         public enum Level
