@@ -6,9 +6,11 @@ namespace hand.history.Models
 {
     public class Action
     {
+        public double Id { get; set; }
+        public double Amount { get; set; }
+
         public Player Player { get; set; }
         public VerbType Verb { get; set; }
-        public double Amount { get; set; }
 
         public enum VerbType
         {

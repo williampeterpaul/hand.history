@@ -1,4 +1,6 @@
-﻿using hand.history.Models;
+﻿using hand.history.Data;
+using hand.history.Extensions;
+using hand.history.Models;
 using hand.history.Services;
 using hand.history.Services.Concrete;
 using System;
@@ -29,8 +31,8 @@ namespace hand.history
 
         public static void Main(string[] args)
         {
-            //var logger = new Logger();
-            //logger.LogInformation("Hello world!", new { Test = "Test", Whatever = "Another Test"});
+            var logger = new Logger();
+            logger.LogInformation("Hello world!", new { Test = "Test", Whatever = "Another Test" });
 
             var file = Environment.CurrentDirectory + "/HH20180715 Aludra - $0.05-$0.10 - USD No Limit Hold'em.txt";
 
@@ -38,6 +40,11 @@ namespace hand.history
 
             //var mapper = new PokerstarsMapper(new Parser(), data).Map();
 
+            Context context = new Context();
+
+            context.Database.EnsureCreated();
+
+            Console.ReadKey();
         }
     }
 }

@@ -6,7 +6,7 @@ namespace hand.history.Models
 {
     public class Player
     {
-        public double Id { get; }
+        public double Id { get; set; }
 
         public string Username { get; set; }
         public bool Alive { get; set; }

@@ -6,6 +6,8 @@ namespace hand.history.Models
 {
     public class Card : IComparable<Card>
     {
+        public double Id { get; set; }
+
         public RankType Rank { get; set; }
         public SuitType Suit { get; set; }
 
