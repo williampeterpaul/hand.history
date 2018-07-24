@@ -7,6 +7,6 @@ namespace hand.history.Services
 {
     public interface IMapper<TTable> where TTable : Table
     {
-        TTable Map();
+        TTable Map(string[] text);
     }
 }

@@ -6,9 +6,9 @@ using System.Text;
 
 namespace hand.history.Data
 {
-    public class Context : DbContext
+    public class ApplicationContext : DbContext
     {
-        public DbSet<Models.Action> Actions { get; set; }
+        public DbSet<Models.Action> Actions { get; set; }1
         public DbSet<Player> Players { get; set; }
         public DbSet<Round> Rounds { get; set; }
         public DbSet<Table> Tables { get; set; }
@@ -20,7 +20,6 @@ namespace hand.history.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Table>().Property(b => b.Id).IsRequired();
         }
     }
 }

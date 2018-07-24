@@ -7,6 +7,7 @@ namespace hand.history.Models
     public class Round
     {
         public double Id { get; set; }
+
         public double Pot { get; set; }
 
         public StreetType Street { get; set; }

@@ -14,12 +14,11 @@ namespace hand.history.Services.Concrete
     {
         private IParser Parser { get; }
 
-        private string[] Text { get; }
+        private string[] Text { get; set; }
 
-        public PokerstarsMapper(IParser parser, string text)
+        public PokerstarsMapper(IParser parser)
         {
             Parser = parser;
-            Text = text.Split(Environment.NewLine);
         }
 
         private double Id => Parser.ParseDouble(Text[0], "(?<=Hand #)[0-9]{10,}");
@@ -144,8 +143,10 @@ namespace hand.history.Services.Concrete
             return new Card { Rank = Card.RankType.Ace, Suit = Card.SuitType.Club };
         }
 
-        public Table Map()
+        public Table Map(string[] text)
         {
+            Text = text;
+
             Console.WriteLine("MapId " + Id);
             Console.WriteLine("MapCurrency " + Currency);
             Console.WriteLine("MapDate " + Date);
