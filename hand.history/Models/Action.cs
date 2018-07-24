@@ -8,11 +8,11 @@ namespace hand.history.Models
     {
         public Player Player { get; set; }
         public VerbType Verb { get; set; }
-        public decimal Amount { get; set; }
+        public double Amount { get; set; }
 
         public enum VerbType
         {
-            Fold, Check, Call, Bet, Raise
+            Fold, Check, Call, Bet, Raise, Show, Muck
         }
     }
 }

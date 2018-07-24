@@ -13,14 +13,11 @@ namespace hand.history.Services.Concrete
 
         public int ParseInteger(string value, string pattern) => Parse<int>(value, pattern);
 
-        public DateTime ParseDateTime(string value, string pattern)
-        {
-            var result = Parse<string>(value, pattern);
+        public IEnumerable<string> ParseStringMulti(string value, string pattern) => ParseMulti<string>(value, pattern);
 
-            if (string.IsNullOrWhiteSpace(result)) return DateTime.Now;
+        public IEnumerable<double> ParseDoubleMulti(string value, string pattern) => ParseMulti<double>(value, pattern);
 
-            return DateTime.Parse(result);
-        }
+        public IEnumerable<int> ParseIntegerMulti(string value, string pattern) => ParseMulti<int>(value, pattern);
 
         private Type Parse<Type>(string value, string pattern)
         {
@@ -31,5 +28,28 @@ namespace hand.history.Services.Concrete
             return (Type)Convert.ChangeType(result, typeof(Type));
         }
 
+        private IEnumerable<Type> ParseMulti<Type>(string value, string pattern)
+        {
+            var matches = Regex.Matches(value, pattern);
+            var result = new List<Type>();
+
+            foreach (Match item in matches)
+            {
+                if (string.IsNullOrWhiteSpace(item.Value)) continue;
+
+                result.Add((Type)Convert.ChangeType(item.Value, typeof(Type)));
+            }
+
+            return result;
+        }
+
+        public DateTime ParseDateTime(string value, string pattern)
+        {
+            var result = Parse<string>(value, pattern);
+
+            if (string.IsNullOrWhiteSpace(result)) return DateTime.Now;
+
+            return DateTime.Parse(result);
+        }
     }
 }

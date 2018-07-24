@@ -8,11 +8,11 @@ namespace hand.history.Extensions
 {
     public static class EnumerableExtension
     {
-        public static IEnumerable<TSource> SequentialValues<TSource>(this IEnumerable<TSource> source, int threshold) where TSource : Card
+        public static IEnumerable<T> SequentialValues<T>(this IEnumerable<T> source, int threshold) where T : Card
         {
             source = source.OrderBy(element => element.Rank).Distinct();
 
-            var result = new List<TSource>();
+            var result = new List<T>();
 
             var last = source.First();
 
@@ -27,6 +27,21 @@ namespace hand.history.Extensions
             }
 
             return result;
+        }
+
+        public static IEnumerable<int> FindIndexes<T>(this IEnumerable<T> items, Func<T, bool> predicate)
+        {
+            int index = 0;
+
+            foreach (T item in items)
+            {
+                if (predicate(item))
+                {
+                    yield return index;
+                }
+
+                index++;
+            }
         }
     }
 }

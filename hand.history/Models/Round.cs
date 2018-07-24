@@ -9,12 +9,12 @@ namespace hand.history.Models
         public double Pot { get; set; }
 
         public StreetType Street { get; set; }
-        public ICollection<Card> Community { get; }
+        public ICollection<Card> Community { get; set; }
         public ICollection<Action> Actions { get; set; }
 
         public enum StreetType
         {
-            Preflop, Flop, Turn, River
+            Preflop, Flop, Turn, River, Showdown
         }
     }
 }

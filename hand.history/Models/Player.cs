@@ -12,5 +12,7 @@ namespace hand.history.Models
         public bool Alive { get; set; }
         public int Position { get; set; }
         public double Stack { get; set; }
+
+        public Hand Hand { get; set; }
     }
 }
