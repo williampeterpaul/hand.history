@@ -5,24 +5,30 @@ using hand.history.Services;
 using hand.history.Services.Concrete;
 using System;
 using System.Linq;
+using Unity;
 
 namespace hand.history
 {
     public class Program
     {
-        public IWatcher Watcher { get; }
-        public IMapper<Table> Mapper { get; }
-        public ILogger Logger { get; }
-        public IEvaluator Evaluator { get; }
+        private UnityContainer Container { get; }
 
-        public Program(IWatcher watcher, IMapper<Table> mapper, ILogger logger, IEvaluator evaluator)
+        private ILogger Logger { get; set; }
+
+        public Program()
         {
-            Watcher = watcher;
-            Mapper = mapper;
-            Logger = logger;
-            Evaluator = evaluator;
+            Container = new UnityContainer();
 
-            Logger.LogInformation("Hello world!", new { Test = "Test", Whatever = "Another Test" });
+            Container.RegisterType<ILogger, Logger>();
+            Container.RegisterType<IParser, Parser>();
+            Container.RegisterType<IReader, FileReader>();
+            Container.RegisterType<IWatcher, FileWatcher>();
+            Container.RegisterType<IEvaluator, Evaluator>();
+            Container.RegisterType<IMapper<Table>, PokerstarsMapper>();
+
+            //Logger = Container.Resolve<Logger>();
+
+            //Logger.LogInformation("Hello world!", new { Test = "Test", Whatever = "Another Test" });
 
             var directory = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "/PokerStars.UK/HandHistory/WI7ZZ";
 
@@ -31,18 +37,23 @@ namespace hand.history
             context.Database.EnsureCreated();
         }
 
-        private void MapExampleFile()
+        public void MapExampleFile()
         {
             var example = Environment.CurrentDirectory + "/HH20180715 Aludra - $0.05-$0.10 - USD No Limit Hold'em.txt";
 
-            var data = new FileReader().Read(example).Split(Environment.NewLine + Environment.NewLine + Environment.NewLine + Environment.NewLine).First();
-            var mapper = new PokerstarsMapper(new Parser()).Map(data.Split(Environment.NewLine));
+            var data = new FileReader().Read(example);
+            var split = data.Split(Environment.NewLine + Environment.NewLine + Environment.NewLine + Environment.NewLine).First();
+
+            var mapper = Container.Resolve<IMapper<Table>>().Map(split.Split(Environment.NewLine));
         }
 
         public static void Main(string[] args)
         {
 
-            Program program = new Program(new FileWatcher(new FileReader()), new PokerstarsMapper(new Parser()), new Logger(), new Evaluator());
+            Program program = new Program();
+
+            program.MapExampleFile();
+
             Console.ReadKey();
         }
     }

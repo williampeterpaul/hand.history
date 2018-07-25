@@ -103,7 +103,7 @@ namespace hand.history.Services.Concrete
 
                         var playername = Parser.ParseString(roundLine, usernamePattern);
                         var verbname = Parser.ParseString(roundLine, verbPattern);
-                        var amount = Parser.ParseDouble(roundLine, amountPattern);
+                        //var amount = Parser.ParseDouble(roundLine, amountPattern);
 
                         //var player = Players.Where(x => x.Username == playername).FirstOrDefault();
                         //var verb = verbname.TrimEnd('s').ToEnum<VerbType>();
