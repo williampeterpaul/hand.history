@@ -1,9 +1,10 @@
-﻿using System;
+﻿using hand.history.Services.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace hand.history.Services.Concrete
+namespace hand.history.Services
 {
     public class FileReader : IReader
     {

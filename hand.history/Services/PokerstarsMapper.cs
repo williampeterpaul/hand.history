@@ -1,14 +1,15 @@
 ﻿using hand.history.Extensions;
-using hand.history.Models;
+using hand.history.DataObject;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using static hand.history.Models.Action;
-using static hand.history.Models.Round;
+using static hand.history.DataObject.Action;
+using static hand.history.DataObject.Round;
+using hand.history.Services.Interfaces;
 
-namespace hand.history.Services.Concrete
+namespace hand.history.Services
 {
     public class PokerstarsMapper : IMapper<Table>
     {
@@ -91,7 +92,7 @@ namespace hand.history.Services.Concrete
 
                     var cards = Parser.ParseString(Text[roundStart], communityPattern);
 
-                    var actions = new List<Models.Action>();
+                    var actions = new List<DataObject.Action>();
 
                     // skip first line; street title
                     for (int j = roundStart + 1; j < roundEnd; j++)

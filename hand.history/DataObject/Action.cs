@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace hand.history.Models
+namespace hand.history.DataObject
 {
     public class Action
     {

@@ -3,9 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using static hand.history.Models.Round;
+using static hand.history.DataObject.Round;
 
-namespace hand.history.Models
+namespace hand.history.DataObject
 {
     public class Table
     {

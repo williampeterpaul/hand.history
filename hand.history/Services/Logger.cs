@@ -1,6 +1,4 @@
-﻿using log4net;
-using log4net.Config;
-using log4net.Core;
+﻿
 using log4net.Repository;
 using log4net.Repository.Hierarchy;
 using System;
@@ -9,8 +7,11 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 using Newtonsoft.Json;
+using hand.history.Services.Interfaces;
+using log4net;
+using log4net.Config;
 
-namespace hand.history.Services.Concrete
+namespace hand.history.Services
 {
     public class Logger : ILogger
     {

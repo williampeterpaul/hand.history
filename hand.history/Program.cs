@@ -1,11 +1,11 @@
-﻿using hand.history.Data;
+﻿using hand.history.DataAccess;
 using hand.history.Extensions;
-using hand.history.Models;
+using hand.history.DataObject;
 using hand.history.Services;
-using hand.history.Services.Concrete;
 using System;
 using System.Linq;
 using Unity;
+using hand.history.Services.Interfaces;
 
 namespace hand.history
 {
@@ -26,9 +26,9 @@ namespace hand.history
             Container.RegisterType<IEvaluator, Evaluator>();
             Container.RegisterType<IMapper<Table>, PokerstarsMapper>();
 
-            //Logger = Container.Resolve<Logger>();
+            Logger = new Logger();
 
-            //Logger.LogInformation("Hello world!", new { Test = "Test", Whatever = "Another Test" });
+            Logger.LogInformation("Hello world!", new { Test = "Test", Whatever = "Another Test" });
 
             var directory = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "/PokerStars.UK/HandHistory/WI7ZZ";
 
@@ -41,10 +41,11 @@ namespace hand.history
         {
             var example = Environment.CurrentDirectory + "/HH20180715 Aludra - $0.05-$0.10 - USD No Limit Hold'em.txt";
 
-            var data = new FileReader().Read(example);
-            var split = data.Split(Environment.NewLine + Environment.NewLine + Environment.NewLine + Environment.NewLine).First();
+            var reader = Container.Resolve<IReader>();
+            var mapper = Container.Resolve<IMapper<Table>>();
 
-            var mapper = Container.Resolve<IMapper<Table>>().Map(split.Split(Environment.NewLine));
+            var data = reader.Read(example).Split(Environment.NewLine + Environment.NewLine + Environment.NewLine + Environment.NewLine).First();
+            var map = mapper.Map(data.Split(Environment.NewLine));
         }
 
         public static void Main(string[] args)

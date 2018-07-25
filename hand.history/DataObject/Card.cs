@@ -2,16 +2,16 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace hand.history.Models
+namespace hand.history.DataObject
 {
-    public class Hand : IComparable<Hand>
+    public class Card : IComparable<Card>
     {
         public double Id { get; set; }
 
         public RankType Rank { get; set; }
-        public ICollection<Card> Cards { get; set; }
+        public SuitType Suit { get; set; }
 
-        public int CompareTo(Hand other)
+        public int CompareTo(Card other)
         {
             if (Rank < other.Rank) return -1;
             if (Rank > other.Rank) return 1;
@@ -21,7 +21,12 @@ namespace hand.history.Models
 
         public enum RankType
         {
-            HighCard, Pair, TwoPair, ThreeOfAKind, Straight, Flush, FullHouse, FourOfAKind, StraightFlush, RoyalFlush
+            Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Jack, Queen, King, Ace
+        }
+
+        public enum SuitType
+        {
+            Club, Diamond, Heart, Spade
         }
     }
 }

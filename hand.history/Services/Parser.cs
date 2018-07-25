@@ -1,9 +1,10 @@
-﻿using System;
+﻿using hand.history.Services.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace hand.history.Services.Concrete
+namespace hand.history.Services
 {
     public sealed class Parser : IParser
     {

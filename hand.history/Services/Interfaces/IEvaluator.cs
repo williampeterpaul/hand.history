@@ -1,10 +1,10 @@
-﻿using hand.history.Models;
+﻿using hand.history.DataObject;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using static hand.history.Models.Hand;
+using static hand.history.DataObject.Hand;
 
-namespace hand.history.Services
+namespace hand.history.Services.Interfaces
 {
     public interface IEvaluator
     {

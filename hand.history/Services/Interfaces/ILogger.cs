@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using static hand.history.Services.Concrete.Logger;
+using static hand.history.Services.Logger;
 
-namespace hand.history.Services
+namespace hand.history.Services.Interfaces
 {
     public interface ILogger
     {

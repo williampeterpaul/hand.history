@@ -1,8 +1,9 @@
 ﻿using hand.history.Services;
+using hand.history.Services.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using static hand.history.Services.Concrete.Logger;
+using static hand.history.Services.Logger;
 
 namespace hand.history.Extensions
 {

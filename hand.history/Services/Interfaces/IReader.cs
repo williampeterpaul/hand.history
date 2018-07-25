@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace hand.history.Services
+namespace hand.history.Services.Interfaces
 {
     public interface IReader
     {

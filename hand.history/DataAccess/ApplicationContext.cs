@@ -1,14 +1,14 @@
-﻿using hand.history.Models;
+﻿using hand.history.DataObject;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace hand.history.Data
+namespace hand.history.DataAccess
 {
     public class ApplicationContext : DbContext
     {
-        public DbSet<Models.Action> Actions { get; set; }
+        public DbSet<DataObject.Action> Actions { get; set; }
         public DbSet<Player> Players { get; set; }
         public DbSet<Round> Rounds { get; set; }
         public DbSet<Table> Tables { get; set; }

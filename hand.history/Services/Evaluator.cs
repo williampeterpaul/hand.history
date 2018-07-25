@@ -1,12 +1,13 @@
 ﻿using hand.history.Extensions;
-using hand.history.Models;
+using hand.history.DataObject;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using static hand.history.Models.Hand;
+using static hand.history.DataObject.Hand;
+using hand.history.Services.Interfaces;
 
-namespace hand.history.Services.Concrete
+namespace hand.history.Services
 {
     public sealed class Evaluator : IEvaluator
     {
