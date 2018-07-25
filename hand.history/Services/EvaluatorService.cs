@@ -9,7 +9,7 @@ using hand.history.Services.Interfaces;
 
 namespace hand.history.Services
 {
-    public sealed class Evaluator : IEvaluator
+    public sealed class EvaluatorService : IEvaluator
     {
         private IReadOnlyDictionary<RankType, Func<IEnumerable<Card>, bool>> Classifier { get; } = new Dictionary<RankType, Func<IEnumerable<Card>, bool>>
         {

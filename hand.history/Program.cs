@@ -19,14 +19,14 @@ namespace hand.history
         {
             Container = new UnityContainer();
 
-            Container.RegisterType<ILogger, Logger>();
-            Container.RegisterType<IParser, Parser>();
-            Container.RegisterType<IReader, FileReader>();
-            Container.RegisterType<IWatcher, FileWatcher>();
-            Container.RegisterType<IEvaluator, Evaluator>();
-            Container.RegisterType<IMapper<Table>, PokerstarsMapper>();
+            Container.RegisterType<ILogger, LoggerService>();
+            Container.RegisterType<IParser, ParserService>();
+            Container.RegisterType<IReader, FileReaderService>();
+            Container.RegisterType<IWatcher, FileWatcherService>();
+            Container.RegisterType<IEvaluator, EvaluatorService>();
+            Container.RegisterType<IMapper<Table>, PokerstarsMapperService>();
 
-            Logger = new Logger();
+            Logger = new LoggerService();
 
             Logger.LogInformation("Hello world!", new { Test = "Test", Whatever = "Another Test" });
 

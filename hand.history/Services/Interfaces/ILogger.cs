@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using static hand.history.Services.Logger;
+using static hand.history.Services.LoggerService;
 
 namespace hand.history.Services.Interfaces
 {

@@ -6,11 +6,11 @@ using System.Text;
 
 namespace hand.history.Services
 {
-    public class FileReader : IReader
+    public class FileReaderService : IReader
     {
         private IDictionary<string, Stream> Streams { get; }
 
-        public FileReader()
+        public FileReaderService()
         {
             Streams = new Dictionary<string, Stream>();
         }

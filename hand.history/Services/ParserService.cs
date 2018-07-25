@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 
 namespace hand.history.Services
 {
-    public sealed class Parser : IParser
+    public sealed class ParserService : IParser
     {
         public string ParseString(string value, string pattern) => Parse<string>(value, pattern);
 

@@ -13,22 +13,22 @@ using log4net.Config;
 
 namespace hand.history.Services
 {
-    public class Logger : ILogger
+    public class LoggerService : ILogger
     {
         private readonly ILog _logger;
 
-        public Logger()
+        public LoggerService()
         {
             XmlConfigurator.Configure(LogManager.GetRepository(Assembly.GetEntryAssembly()), new FileInfo("log4net.config"));
 
-            _logger = LogManager.GetLogger(typeof(Logger));
+            _logger = LogManager.GetLogger(typeof(LoggerService));
         }
 
-        public Logger(string configuration)
+        public LoggerService(string configuration)
         {
             XmlConfigurator.Configure(LogManager.GetRepository(Assembly.GetEntryAssembly()), new FileInfo(configuration));
 
-            _logger = LogManager.GetLogger(typeof(Logger));
+            _logger = LogManager.GetLogger(typeof(LoggerService));
         }
 
         public void Log(Level level, string message, object obj)

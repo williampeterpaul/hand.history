@@ -11,13 +11,13 @@ using hand.history.Services.Interfaces;
 
 namespace hand.history.Services
 {
-    public class PokerstarsMapper : IMapper<Table>
+    public class PokerstarsMapperService : IMapper<Table>
     {
         private IParser Parser { get; }
 
         private string[] Text { get; set; }
 
-        public PokerstarsMapper(IParser parser)
+        public PokerstarsMapperService(IParser parser)
         {
             Parser = parser;
         }

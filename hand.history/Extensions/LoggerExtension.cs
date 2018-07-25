@@ -3,7 +3,7 @@ using hand.history.Services.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using static hand.history.Services.Logger;
+using static hand.history.Services.LoggerService;
 
 namespace hand.history.Extensions
 {

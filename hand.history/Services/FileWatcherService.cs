@@ -6,11 +6,11 @@ using System.Text;
 
 namespace hand.history.Services
 {
-    public sealed class FileWatcher : IWatcher
+    public sealed class FileWatcherService : IWatcher
     {
         private IReader Reader { get; }
 
-        public FileWatcher(IReader reader)
+        public FileWatcherService(IReader reader)
         {
             Reader = reader;
         }
