@@ -12,12 +12,12 @@ namespace hand.history
     public class Program
     {
         private UnityContainer Container { get; }
-
-        private ILogger Logger { get; set; }
+        private ApplicationContext Context { get; }
 
         public Program()
         {
             Container = new UnityContainer();
+            Context = new ApplicationContext();
 
             Container.RegisterType<ILogger, LoggerService>();
             Container.RegisterType<IParser, ParserService>();
@@ -26,15 +26,7 @@ namespace hand.history
             Container.RegisterType<IEvaluator, EvaluatorService>();
             Container.RegisterType<IMapper<Table>, PokerstarsMapperService>();
 
-            Logger = new LoggerService();
-
-            Logger.LogInformation("Hello world!", new { Test = "Test", Whatever = "Another Test" });
-
-            var directory = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "/PokerStars.UK/HandHistory/WI7ZZ";
-
-            ApplicationContext context = new ApplicationContext();
-
-            context.Database.EnsureCreated();
+            Context.Database.EnsureCreated();
         }
 
         public void MapExampleFile()
@@ -50,7 +42,6 @@ namespace hand.history
 
         public static void Main(string[] args)
         {
-
             Program program = new Program();
 
             program.MapExampleFile();
