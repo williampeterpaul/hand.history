@@ -10,7 +10,7 @@ namespace hand.history.DataAccess
     {
         public DbSet<DataObject.Action> Actions { get; set; }
         public DbSet<Player> Players { get; set; }
-        public DbSet<Round> Rounds { get; set; }
+        public DbSet<Street> Rounds { get; set; }
         public DbSet<Table> Tables { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -20,6 +20,13 @@ namespace hand.history.DataAccess
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<Player>().HasData(
+                new Player { Id = 1 },
+                new Player { Id = 2 },
+                new Player { Id = 3 },
+                new Player { Id = 4 }
+            );
         }
+
     }
 }

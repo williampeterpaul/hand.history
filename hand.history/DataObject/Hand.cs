@@ -9,7 +9,7 @@ namespace hand.history.DataObject
         public double Id { get; set; }
 
         public RankType Rank { get; set; }
-        public ICollection<Card> Cards { get; set; }
+        public IEnumerable<Card> Cards { get; set; }
 
         public int CompareTo(Hand other)
         {

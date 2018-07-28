@@ -7,7 +7,6 @@ namespace hand.history.DataObject
     public class Action
     {
         public double Id { get; set; }
-
         public double Amount { get; set; }
 
         public Player Player { get; set; }
@@ -15,7 +14,7 @@ namespace hand.history.DataObject
 
         public enum VerbType
         {
-            Fold, Check, Call, Bet, Raise, Show, Muck
+            Folds, Checks, Calls, Bets, Raises, Shows, Mucks
         }
     }
 }

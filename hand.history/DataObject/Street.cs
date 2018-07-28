@@ -4,15 +4,14 @@ using System.Text;
 
 namespace hand.history.DataObject
 {
-    public class Round
+    public class Street
     {
         public double Id { get; set; }
-
         public double Pot { get; set; }
 
-        public StreetType Street { get; set; }
-        public ICollection<Card> Community { get; set; }
-        public ICollection<Action> Actions { get; set; }
+        public StreetType Type { get; set; }
+        public IEnumerable<Card> Community { get; set; }
+        public IEnumerable<Action> Actions { get; set; }
 
         public enum StreetType
         {
