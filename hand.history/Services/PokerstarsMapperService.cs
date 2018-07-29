@@ -8,6 +8,7 @@ using System.Text;
 using static hand.history.DataObject.Action;
 using static hand.history.DataObject.Street;
 using hand.history.Services.Interfaces;
+using static hand.history.DataObject.Card;
 
 namespace hand.history.Services
 {
@@ -175,22 +176,51 @@ namespace hand.history.Services
 
         public IEnumerable<Card> LineToCards(string text)
         {
-            var line = Parser.ParseString(text, IgnorePrecedingSquareBracketRegex + AnyCharRegex);
-            var cards = Parser.ParseStringMulti(line, AnyCardRegex);
+            var textAfterSquareBracket = Parser.ParseString(text, IgnorePrecedingSquareBracketRegex + AnyCharRegex);
+            var cardsText = Parser.ParseStringMulti(textAfterSquareBracket, AnyCardRegex);
 
-            return cards.ConvertType(TextToCard);
+            return cardsText.ConvertType(TextToCard);
         }
 
         public Card TextToCard(string text)
         {
-            if (text.Length != 2) throw new FormatException("Text is not in the format correct format");
+            if (text.Length != 2) throw new FormatException("Text is not in the format correct format! Examples include 9h, As, and Tc");
 
-            //var rank = text[0].ToString();
-            //var suit = text[1].ToString();
+            var result = new Card();
 
-            //var test = suit.ToEnum<Card.SuitType>();
+            var rank = text[0];
+            var suit = text[1];
 
-            return new Card { Rank = Card.RankType.Ace, Suit = Card.SuitType.Club };
+            switch (rank)
+            {
+                case 'A': result.Rank = RankType.Ace; break;
+                case 'K': result.Rank = RankType.King; break;
+                case 'Q': result.Rank = RankType.Queen; break;
+                case 'J': result.Rank = RankType.Jack; break;
+                case 'T': result.Rank = RankType.Ten; break;
+                case '9': result.Rank = RankType.Nine; break;
+                case '8': result.Rank = RankType.Eight; break;
+                case '7': result.Rank = RankType.Seven; break;
+                case '6': result.Rank = RankType.Six; break;
+                case '5': result.Rank = RankType.Five; break;
+                case '4': result.Rank = RankType.Four; break;
+                case '3': result.Rank = RankType.Three; break;
+                case '2': result.Rank = RankType.Two; break;
+
+                default: throw new FormatException("Rank cannot be parsed! Only A, K, Q, J, T, or 2 to 9 allowed");
+            }
+
+            switch (suit)
+            {
+                case 'c': result.Suit = SuitType.Club; break;
+                case 's': result.Suit = SuitType.Spade; break;
+                case 'h': result.Suit = SuitType.Heart; break;
+                case 'd': result.Suit = SuitType.Diamond; break;
+
+                default: throw new FormatException("Suit cannot be parsed! Only c, s, h, or d allowed");
+            }
+
+            return result;
         }
 
         public Table Map(string[] text)
@@ -207,7 +237,7 @@ namespace hand.history.Services
             //Console.WriteLine("MapTotalRake " + TotalRake); // todo
             //Console.WriteLine("MapSeats " + Seats);
 
-            var p = Players;
+            //var p = Players;
             var k = Rounds;
 
             return new Table();
