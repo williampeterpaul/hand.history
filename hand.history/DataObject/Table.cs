@@ -10,7 +10,7 @@ namespace hand.history.DataObject
     public class Table
     {
         public decimal Id { get; set; }
-        public decimal GameId { get; set; }
+        public decimal HandId { get; set; }
         public decimal TournamentId { get; set; }
         public decimal BBlind { get; set; }
         public decimal SBlind { get; set; }
@@ -22,9 +22,8 @@ namespace hand.history.DataObject
         public int Seats { get; set; }
 
         public DateTime Date { get; set; }
-
-        public IEnumerable<Player> Players { get; }
-        public IEnumerable<Street> Streets { get; }
+        public IEnumerable<Player> Players { get; set; }
+        public IEnumerable<Street> Streets { get; set; }
 
         public int StreetCount => Streets.Count();
         public int PlayerCount => Players.Count();
