@@ -14,25 +14,20 @@ namespace hand.history.Services
 {
     public class PokerstarsMapperService : IMapper<Table>
     {
-        private const string CurrencyRegex = @"(\d{1,3}(,?\d{3})?(\.\d\d?)?|\(\$?\d{1,3}(,?\d{3})?(\.\d\d?)?\))";
-        private const string CurrencyUnitRegex = @"([$]|[£]|[€])";
+        private const string CurrencyRegex =            @"(\d{1,3}(,?\d{3})?(\.\d\d?)?|\(\$?\d{1,3}(,?\d{3})?(\.\d\d?)?\))";
+        private const string CurrencyUnitRegex =        @"([$]|[£]|[€])";
+        private const string AnyCharRegex =             @"(.*)";
+        private const string AnyCardRegex =             @"([AKQJT]|[0-9])([cdhs])";
+        private const string BehindColonRegex =         @"(?=\:.*)";
+        private const string BehindBracketRegex =       @"(?=\(.*)";
+        private const string AheadColonRegex =          @"(?<=\:.*)";
+        private const string AheadBracketRegex =        @"(?<=\(.*)";
+        private const string AheadSquareBracketRegex =  @"(?<=\[.*)";
+        private const string AheadBlindRegex =          @"(?<=blind.*)";
+        private const string StreetIdentifierPattern =  @"(\*\*\*).*";
 
-        private const string AnyCharRegex = @"(.*)";
-        private const string AnyCardRegex = @"([AKQJT]|[0-9])([cdhs])";
-
-        private const string IgnoreTrailingColonRegex = @"(?=\:.*)";
-        private const string IgnoreTrailingBracketRegex = @"(?=\(.*)";
-
-        private const string IgnorePrecedingColonRegex = @"(?<=\:.*)";
-        private const string IgnorePrecedingBracketRegex = @"(?<=\(.*)";
-        private const string IgnorePrecedingSquareBracketRegex = @"(?<=\[.*)";
-        private const string IgnorePrecedingBlindRegex = @"(?<=blind.*)";
-
-        private const string StreetVerbPattern = @"(?<=:\s+)\w+";
-        private const string StreetUsernamePattern = @".*(?=:)";
-        private const string StreetIdentifierPattern = @"(\*\*\*).*";
-
-        private const string PlayersStackPattern = @"(?<=\(([$]|[£]|[€]))(.+)(?=in)";
+        private const string StreetVerbPattern =        @"(?<=:\s+)\w+";
+        private const string DealtToPattern =           @"(?<=Dealt to ).*(?= \[)";
 
         private string _id;
         private string _tourneyId;
@@ -47,7 +42,7 @@ namespace hand.history.Services
 
         private DateTime _date;
         private IEnumerable<Player> _players;
-        private IEnumerable<Street> _rounds;
+        private IEnumerable<Street> _streets;
 
         private string[] Text { get; set; }
 
@@ -62,7 +57,7 @@ namespace hand.history.Services
 
         private double TournamentId => Parser.ParseDouble(Text[0], "(?<=Tournament #)[0-9]{10,}");
 
-        private string Title=> Parser.ParseString(Text[1], "'(.*?)'");
+        private string Title => Parser.ParseString(Text[1], "'(.*?)'");
 
         private string Game => Parser.ParseString(Text[0], "(Hold'em No Limit)");
 
@@ -89,8 +84,8 @@ namespace hand.history.Services
                 for (int i = 0; i < Seats; i++)
                 {
                     var current = Text[i + 2];
-                    var username = Parser.ParseString(current, IgnorePrecedingColonRegex + AnyCharRegex + IgnoreTrailingBracketRegex).Trim();
-                    var stack = Parser.ParseDouble(current, IgnorePrecedingBracketRegex + CurrencyRegex);
+                    var username = Parser.ParseString(current, AheadColonRegex + AnyCharRegex + BehindBracketRegex).Trim();
+                    var stack = Parser.ParseDouble(current, AheadBracketRegex + CurrencyRegex);
 
                     result.Add(new Player { Username = username, Stack = stack, Alive = true, Position = i });
                 }
@@ -99,7 +94,7 @@ namespace hand.history.Services
             }
         }
 
-        private IEnumerable<Street> Rounds
+        private IEnumerable<Street> Streets
         {
             get
             {
@@ -110,10 +105,10 @@ namespace hand.history.Services
                 {
                     var streetStart = streetIndexes[i];
                     var streetEnd = streetIndexes[i + 1];
+
                     var streetType = (StreetType)i;
 
-                    var community = LineToCards(Text[streetStart]);
-
+                    var community = TextToCards(Text[streetStart]);
                     var actions = new List<DataObject.Action>();
 
                     for (int j = streetStart + 1; j < streetEnd; j++)
@@ -123,43 +118,40 @@ namespace hand.history.Services
 
                         if (i == 0 && j == streetStart + 1)
                         {
-                            // get initial cards for player
+                            var currentPlayerText = Parser.ParseString(streetLine, DealtToPattern);
+                            var currentPlayer = Players.Where(x => x.Username.Equals(currentPlayerText)).Single();
+
+                            currentPlayer.Hand = new Hand() { Cards = TextToCards(streetLine) };
+
                             continue;
                         }
 
-                        //todo last line get collected amount and compare to expected, throw exception if fail
                         if (streetLine.Contains("collected"))
                         {
                             // get player
                             // get amount and add to stack
-                            // set alive to true
+                            // if amount != pot - rake then throw
+                            // set alive to true!
                             break;
                         }
 
                         var verbText = Parser.ParseString(streetLine, StreetVerbPattern);
-                        var playerText = Parser.ParseString(streetLine, StreetUsernamePattern);
+                        var playerText = Parser.ParseString(streetLine, AnyCharRegex + BehindColonRegex);
 
                         var verb = verbText.ToEnum<VerbType>();
                         var player = Players.Where(x => x.Username.Equals(playerText)).Single();
 
-                        // skip doesn't show
-
-                        if (verb == VerbType.Folds || verb == VerbType.Mucks) player.Alive = false;
-
-                        if (verb == VerbType.Shows)
-                        {
-                            player.Alive = false; //todo get cards shown
-                        }
-
+                        if (verb == VerbType.Folds) player.Alive = false;
+                        if (verb == VerbType.Mucks) player.Alive = false;
+                        if (verb == VerbType.Shows) player.Alive = false; player.Hand = new Hand { Cards = TextToCards(streetLine) };
                         if (verb == VerbType.Bets || verb == VerbType.Calls)
                         {
-                            amount = Parser.ParseDouble(streetLine, IgnorePrecedingColonRegex + CurrencyRegex);
+                            amount = Parser.ParseDouble(streetLine, AheadColonRegex + CurrencyRegex);
                             player.Stack -= amount;
                         }
-
                         if (verb == VerbType.Raises)
                         {
-                            var raise = Parser.ParseDoubleMulti(streetLine, IgnorePrecedingColonRegex + CurrencyRegex);
+                            var raise = Parser.ParseDoubleMulti(streetLine, AheadColonRegex + CurrencyRegex);
                             amount = raise.ElementAt(1) - raise.ElementAt(0);
                             player.Stack -= amount;
                         }
@@ -174,9 +166,9 @@ namespace hand.history.Services
             }
         }
 
-        public IEnumerable<Card> LineToCards(string text)
+        public IEnumerable<Card> TextToCards(string text)
         {
-            var textAfterSquareBracket = Parser.ParseString(text, IgnorePrecedingSquareBracketRegex + AnyCharRegex);
+            var textAfterSquareBracket = Parser.ParseString(text, AheadSquareBracketRegex + AnyCharRegex);
             var cardsText = Parser.ParseStringMulti(textAfterSquareBracket, AnyCardRegex);
 
             return cardsText.ConvertType(TextToCard);
@@ -227,18 +219,7 @@ namespace hand.history.Services
         {
             Text = text;
 
-            //Console.WriteLine("MapId " + Id);
-            //Console.WriteLine("MapCurrency " + Currency);
-            //Console.WriteLine("MapDate " + Date);
-            //Console.WriteLine("MapTitle " + Title);
-            //Console.WriteLine("BB " + BigBlind);
-            //Console.WriteLine("SB " + SmallBlind);
-            //Console.WriteLine("MapTotalPot " + TotalPot); // todo
-            //Console.WriteLine("MapTotalRake " + TotalRake); // todo
-            //Console.WriteLine("MapSeats " + Seats);
-
-            //var p = Players;
-            var k = Rounds;
+            var k = Streets;
 
             return new Table();
         }
