@@ -38,27 +38,16 @@ namespace hand.history.Services
 
         private const string StreetIdentifierRegex = @"(\*\*\*).*";
         private const string GameIdentifierRegex = @"(Hold'em No Limit)";
+        private const string SeatIdentifierRegex = @"(Seat [0-9]+\:)";
 
         private const string StreetVerbRegex = @"(?<=:\s+)\w+";
         private const string DealtToRegex = @"(?<=Dealt to ).*(?= \[)";
 
-        private decimal _handId;
-        private decimal _tourneyId;
-        private decimal _bblind;
-        private decimal _sblind;
-        private decimal _pot;
-        private decimal _rake;
-        private string _currency;
-        private string _title;
-        private string _game;
         private int _seats;
 
-        private DateTime _date;
+        private int[] _streetIndexes;
         private IEnumerable<Player> _players;
         private IEnumerable<Street> _streets;
-        private int[] _streetIndexes;
-
-        private string[] Text { get; set; }
 
         private IParser Parser { get; }
 
@@ -67,63 +56,57 @@ namespace hand.history.Services
             Parser = parser;
         }
 
-        private IEnumerable<Player> Players
+        private IEnumerable<Player> GetPlayers(string[] text)
         {
-            get
+            var result = new List<Player>();
+
+            for (int i = 0; i < _seats; i++)
             {
-                var result = new List<Player>();
+                var current = text[i + 2];
+                var username = Parser.ParseString(current, AheadColonRegex + AnyCharRegex + BehindBracketRegex).Trim();
+                var stack = Parser.ParseDecimal(current, AheadBracketRegex + CurrencyRegex);
 
-                for (int i = 0; i < _seats; i++)
-                {
-                    var current = Text[i + 2];
-                    var username = Parser.ParseString(current, AheadColonRegex + AnyCharRegex + BehindBracketRegex).Trim();
-                    var stack = Parser.ParseDecimal(current, AheadBracketRegex + CurrencyRegex);
-
-                    result.Add(new Player { Username = username, Stack = stack, Alive = true, Position = i });
-                }
-
-                return result;
+                result.Add(new Player { Username = username, Stack = stack, Alive = true, Position = i });
             }
+
+            return result;
         }
 
-        private IEnumerable<Street> Streets
+        private IEnumerable<Street> GetStreets(string[] text)
         {
-            get
+            var result = new List<Street>();
+
+            for (int i = 0; i < _streetIndexes.Count() - 1; i++)
             {
-                var result = new List<Street>();
+                var streetStart = _streetIndexes[i];
+                var streetEnd = _streetIndexes[i + 1];
 
-                for (int i = 0; i < _streetIndexes.Count() - 1; i++)
+                var streetType = (StreetType)i;
+
+                var community = TextToCards(text[streetStart]);
+                var actions = new List<DataObject.Action>();
+
+                for (int j = streetStart + 1; j < streetEnd; j++)
                 {
-                    var streetStart = _streetIndexes[i];
-                    var streetEnd = _streetIndexes[i + 1];
+                    var streetLine = text[j];
 
-                    var streetType = (StreetType)i;
-
-                    var community = TextToCards(Text[streetStart]);
-                    var actions = new List<DataObject.Action>();
-
-                    for (int j = streetStart + 1; j < streetEnd; j++)
+                    if (i == 0 && j == streetStart + 1)
                     {
-                        var streetLine = Text[j];
+                        var currentPlayerText = Parser.ParseString(streetLine, DealtToRegex);
+                        var currentPlayer = _players.Where(x => x.Username.Equals(currentPlayerText)).Single();
 
-                        if (i == 0 && j == streetStart + 1)
-                        {
-                            var currentPlayerText = Parser.ParseString(streetLine, DealtToRegex);
-                            var currentPlayer = _players.Where(x => x.Username.Equals(currentPlayerText)).Single();
+                        currentPlayer.Hand = new Hand() { Cards = TextToCards(streetLine) };
 
-                            currentPlayer.Hand = new Hand() { Cards = TextToCards(streetLine) };
-
-                            continue;
-                        }
-
-                        actions.Add(TextToAction(streetLine));
+                        continue;
                     }
 
-                    result.Add(new Street { Type = streetType, Community = community, Actions = actions });
+                    actions.Add(TextToAction(streetLine));
                 }
 
-                return result;
+                result.Add(new Street { Type = streetType, Community = community, Actions = actions });
             }
+
+            return result;
         }
 
         private DataObject.Action TextToAction(string text)
@@ -136,8 +119,6 @@ namespace hand.history.Services
                 var player1 = _players.Where(x => x.Username == player123).Single();
 
                 amount = Parser.ParseDecimal(text, AheadCollectedRegex + CurrencyRegex);
-
-                if (!amount.Equals(_pot - _rake)) throw new FormatException("Collected amount doesn't equal the total pot minus the rake");
 
                 player1.Stack += amount;
 
@@ -231,44 +212,34 @@ namespace hand.history.Services
 
         public Table Map(string[] text)
         {
-            Text = text;
+            _streetIndexes = text.FindIndexes(x => Parser.ParseString(x, StreetIdentifierRegex).Length > 0).ToArray();
+            _seats = text.FindIndexes(x => Parser.ParseString(x, SeatIdentifierRegex).Length > 0).Count() / 2;
 
-            _streetIndexes = Text.FindIndexes(x => Parser.ParseString(x, StreetIdentifierRegex).Length > 0).ToArray();
+            _players = GetPlayers(text);
+            _streets = GetStreets(text);
 
-            _handId = Parser.ParseDecimalMulti(Text[0], AheadHashRegex + AnyNumberRegex).ElementAtOrDefault(0);
-            _tourneyId = Parser.ParseDecimalMulti(Text[0], AheadHashRegex + AnyNumberRegex).ElementAtOrDefault(1);
-            _currency = Parser.ParseString(Text[0], CurrencyUnitRegex);
-
-            _seats = Parser.ParseInteger(Text[1], AnyNumberRegex + BehindMaxRegex);
-            _title = Parser.ParseString(Text[1], AheadQuoteRegex + AnyCharRegex + BehindQuoteRegex);
-            _game = Parser.ParseString(Text[0], GameIdentifierRegex);
-            _sblind = Parser.ParseDecimal(Text[_seats + 2], AheadBlindRegex + CurrencyRegex);
-            _bblind = Parser.ParseDecimal(Text[_seats + 3], AheadBlindRegex + CurrencyRegex);
-            _pot = Parser.ParseDecimalMulti(Text[_streetIndexes.Last() + 1], CurrencyRegex).ElementAtOrDefault(0);
-            _rake = Parser.ParseDecimalMulti(Text[_streetIndexes.Last() + 1], CurrencyRegex).ElementAtOrDefault(1);
-
-            _date = Parser.ParseDateTime(Text[0], AheadSquareBracketRegex + AnyDateRegex);
-            _players = Players;
-            _streets = Streets;
-
-            var t = new Table
+            var table = new Table
             {
-                HandId = _handId,
-                TournamentId = _tourneyId,
-                BBlind = _bblind,
-                SBlind = _sblind,
-                Pot = _pot,
-                Rake = _rake,
-                Currency = _currency,
-                Title = _title,
-                Game = _game,
-                Seats = _seats,
-                Date = _date,
+                HandId = Parser.ParseDecimalMulti(text[0], AheadHashRegex + AnyNumberRegex).ElementAtOrDefault(0),
+                TournamentId = Parser.ParseDecimalMulti(text[0], AheadHashRegex + AnyNumberRegex).ElementAtOrDefault(1),
+                BBlind = Parser.ParseDecimal(text[_seats + 3], AheadBlindRegex + CurrencyRegex),
+                SBlind = Parser.ParseDecimal(text[_seats + 2], AheadBlindRegex + CurrencyRegex),
+                Pot = Parser.ParseDecimalMulti(text[_streetIndexes.Last() + 1], CurrencyRegex).ElementAtOrDefault(0),
+                Rake = Parser.ParseDecimalMulti(text[_streetIndexes.Last() + 1], CurrencyRegex).ElementAtOrDefault(1),
+                Currency = Parser.ParseString(text[0], CurrencyUnitRegex),
+                Title = Parser.ParseString(text[1], AheadQuoteRegex + AnyCharRegex + BehindQuoteRegex),
+                Game = Parser.ParseString(text[0], GameIdentifierRegex),
+                Seats = _seats, 
+                SeatsMax = Parser.ParseInteger(text[1], AnyNumberRegex + BehindMaxRegex),
+                Date = Parser.ParseDateTime(text[0], AheadSquareBracketRegex + AnyDateRegex),
                 Players = _players,
                 Streets = _streets
             };
 
-            return t;
+            // pot - rake 
+            // other checks or throw exception
+
+            return table;
         }
     }
 }

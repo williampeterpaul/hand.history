@@ -20,6 +20,7 @@ namespace hand.history.DataObject
         public string Title { get; set; }
         public string Game { get; set; }
         public int Seats { get; set; }
+        public int SeatsMax { get; set; }
 
         public DateTime Date { get; set; }
         public IEnumerable<Player> Players { get; set; }
