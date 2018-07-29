@@ -19,7 +19,7 @@ namespace hand.history.Services
         public Type Parse<Type>(string value, string pattern)
         {
             var result = Regex.Match(value, pattern).Value;
-            return (Type)Convert.ChangeType(value, typeof(Type));
+            return (Type)Convert.ChangeType(result, typeof(Type));
         }
 
         public IEnumerable<Type> ParseMulti<Type>(string value, string pattern)

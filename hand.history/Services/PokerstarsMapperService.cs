@@ -21,10 +21,10 @@ namespace hand.history.Services
         private const string AfterBracketAltRegex = @"(?<=[.*)";
         private const string AfterBlindRegex = @"(?<=blind)";
 
-        private const string RoundVerbPattern = @"(?<=:\s+)\w+";
-        private const string RoundUsernamePattern = @".*(?=:)";
-        private const string RoundStreetsPattern = @"(\*\*\*) (\w+).*[\n|\r|\s]*";
-        private const string RoundCommunityPattern = @"(\[).*(?=[\\n|\r|\s])";
+        private const string StreetVerbPattern = @"(?<=:\s+)\w+";
+        private const string StreetUsernamePattern = @".*(?=:)";
+        private const string StreetIdentifierPattern = @"(\*\*\*) (\w+).*[\n|\r|\s]*";
+        private const string StreetCommunityPattern = @"(\[).*(?=[\\n|\r|\s])";
 
         private const string PlayersUsernamePattern = @"(?<=Seat [0-9]+: )(.+)(?= \()";
         private const string PlayersStackPattern = @"(?<=\(([$]|[£]|[€]))(.+)(?=in)";
@@ -99,22 +99,20 @@ namespace hand.history.Services
             get
             {
                 var result = new List<Street>();
-                var streetIndexes = Text.FindIndexes(x => Parser.ParseString(x, RoundStreetsPattern) != default(string)).ToArray();
+                var streetIndexes = Text.FindIndexes(x => Parser.ParseString(x, StreetIdentifierPattern) != string.Empty).ToArray();
 
-                // don't care about the summary so take 1
                 for (int i = 0; i < streetIndexes.Count() - 1; i++)
                 {
                     var streetStart = streetIndexes[i];
                     var streetEnd = streetIndexes[i + 1];
 
-                    var round = (StreetType)i;
+                    var street = (StreetType)i;
                     var community = new List<Card>();
 
-                    var cards = Parser.ParseString(Text[streetStart], RoundCommunityPattern); //todo parse community cards properly
+                    var cards = Parser.ParseString(Text[streetStart], StreetCommunityPattern); //todo parse community cards properly
 
                     var actions = new List<DataObject.Action>();
 
-                    // skip first line; street title
                     for (int j = streetStart + 1; j < streetEnd; j++)
                     {
                         var streetLine = Text[j];
@@ -135,12 +133,11 @@ namespace hand.history.Services
                             continue;
                         }
 
-                        var playerText = Parser.ParseString(streetLine, RoundUsernamePattern);
-                        var verbText = Parser.ParseString(streetLine, RoundVerbPattern);
+                        var playerText = Parser.ParseString(streetLine, StreetUsernamePattern);
+                        var verbText = Parser.ParseString(streetLine, StreetVerbPattern);
 
                         var player = Players.Where(x => x.Username.Equals(playerText)).First();
                         var verb = verbText.ToEnum<VerbType>();
-
 
                         // skip doesn't show
 
@@ -156,7 +153,7 @@ namespace hand.history.Services
                         actions.Add(new DataObject.Action { Player = player, Verb = verb, Amount = amount });
                     }
 
-                    result.Add(new Street { StreetType = round, Community = community, Actions = actions });
+                    result.Add(new Street { Type = street, Community = community, Actions = actions });
                 }
 
                 return result;
@@ -175,17 +172,17 @@ namespace hand.history.Services
         {
             Text = text;
 
-            Console.WriteLine("MapId " + Id);
-            Console.WriteLine("MapCurrency " + Currency);
-            Console.WriteLine("MapDate " + Date);
-            Console.WriteLine("MapTitle " + Title);
-            Console.WriteLine("BB " + BigBlind);
-            Console.WriteLine("SB " + SmallBlind);
-            Console.WriteLine("MapTotalPot " + TotalPot);
-            Console.WriteLine("MapTotalRake " + TotalRake);
-            Console.WriteLine("MapSeats " + Seats);
+            //Console.WriteLine("MapId " + Id);
+            //Console.WriteLine("MapCurrency " + Currency);
+            //Console.WriteLine("MapDate " + Date);
+            //Console.WriteLine("MapTitle " + Title);
+            //Console.WriteLine("BB " + BigBlind);
+            //Console.WriteLine("SB " + SmallBlind);
+            //Console.WriteLine("MapTotalPot " + TotalPot); // todo
+            //Console.WriteLine("MapTotalRake " + TotalRake); // todo
+            //Console.WriteLine("MapSeats " + Seats);
 
-            var p = Players;
+            //var p = Players;
             var k = Rounds;
 
             return new Table();
