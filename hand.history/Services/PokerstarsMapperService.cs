@@ -43,7 +43,7 @@ namespace hand.history.Services
         private const string StreetVerbRegex = @"(?<=:\s+)\w+";
         private const string DealtToRegex = @"(?<=Dealt to ).*(?= \[)";
 
-        private int _seats;
+        private int _seatsOccupied;
 
         private int[] _streetIndexes;
         private IEnumerable<Player> _players;
@@ -60,7 +60,7 @@ namespace hand.history.Services
         {
             var result = new List<Player>();
 
-            for (int i = 0; i < _seats; i++)
+            for (int i = 0; i < _seatsOccupied; i++)
             {
                 var current = text[i + 2];
                 var username = Parser.ParseString(current, AheadColonRegex + AnyCharRegex + BehindBracketRegex).Trim();
@@ -113,27 +113,26 @@ namespace hand.history.Services
         {
             decimal amount = 0;
 
+            if (text.Contains("Uncalled")) return null; // dumb
+
             if (text.Contains("collected"))
             {
-                var player123 = Parser.ParseString(text, AnyCharRegex + BehindCollectedRegex).Trim();
-                var player1 = _players.Where(x => x.Username == player123).Single();
+                var currentPlayerText = Parser.ParseString(text, AnyCharRegex + BehindCollectedRegex).Trim();
+                var currentPlayer = _players.Where(x => x.Username == currentPlayerText).Single();
 
                 amount = Parser.ParseDecimal(text, AheadCollectedRegex + CurrencyRegex);
 
-                player1.Stack += amount;
+                currentPlayer.Stack += amount;
 
                 return default(DataObject.Action);
             }
 
-            var verbText = Parser.ParseString(text, StreetVerbRegex);
-            var playerText = Parser.ParseString(text, AnyCharRegex + BehindColonRegex);
-
-            var verb = verbText.ToEnum<VerbType>();
-            var player = _players.Where(x => x.Username.Equals(playerText)).Single();
+            var verb = Parser.ParseString(text, StreetVerbRegex).ToEnum<VerbType>();
+            var player = _players.Where(x => x.Username.Equals(Parser.ParseString(text, AnyCharRegex + BehindColonRegex))).Single();
 
             player.Alive = false;
 
-            if (verb == VerbType.Shows)
+            if (verb == VerbType.Shows) 
             {
                 player.Hand = new Hand { Cards = TextToCards(text) };
             }
@@ -213,31 +212,42 @@ namespace hand.history.Services
         public Table Map(string[] text)
         {
             _streetIndexes = text.FindIndexes(x => Parser.ParseString(x, StreetIdentifierRegex).Length > 0).ToArray();
-            _seats = text.FindIndexes(x => Parser.ParseString(x, SeatIdentifierRegex).Length > 0).Count() / 2;
+            _seatsOccupied = text.FindIndexes(x => Parser.ParseString(x, SeatIdentifierRegex).Length > 0).Count() / 2;
+
+            // if text length > initial 2 lines + players + blinds + (max streets * players) + street headings + "collected" line + total pot & board + player summaries
+            if (text.Length > (2 + _seatsOccupied + 2 + (6 * _seatsOccupied) + 6 + 1 + 2 + _seatsOccupied)) throw new FormatException();
+            if (text.Length < 0) throw new FormatException();
+
+            if (_streetIndexes.Length > 6) throw new FormatException();
+            if (_streetIndexes.Length < 2) throw new FormatException();
 
             _players = GetPlayers(text);
+
+            if (_players.Count() != _seatsOccupied) throw new FormatException();
+
             _streets = GetStreets(text);
+
+            if (_streets.Count() != _streetIndexes.Length) throw new FormatException();
 
             var table = new Table
             {
                 HandId = Parser.ParseDecimalMulti(text[0], AheadHashRegex + AnyNumberRegex).ElementAtOrDefault(0),
                 TournamentId = Parser.ParseDecimalMulti(text[0], AheadHashRegex + AnyNumberRegex).ElementAtOrDefault(1),
-                BBlind = Parser.ParseDecimal(text[_seats + 3], AheadBlindRegex + CurrencyRegex),
-                SBlind = Parser.ParseDecimal(text[_seats + 2], AheadBlindRegex + CurrencyRegex),
+                BBlind = Parser.ParseDecimal(text[_seatsOccupied + 3], AheadBlindRegex + CurrencyRegex),
+                SBlind = Parser.ParseDecimal(text[_seatsOccupied + 2], AheadBlindRegex + CurrencyRegex),
                 Pot = Parser.ParseDecimalMulti(text[_streetIndexes.Last() + 1], CurrencyRegex).ElementAtOrDefault(0),
                 Rake = Parser.ParseDecimalMulti(text[_streetIndexes.Last() + 1], CurrencyRegex).ElementAtOrDefault(1),
                 Currency = Parser.ParseString(text[0], CurrencyUnitRegex),
                 Title = Parser.ParseString(text[1], AheadQuoteRegex + AnyCharRegex + BehindQuoteRegex),
                 Game = Parser.ParseString(text[0], GameIdentifierRegex),
-                Seats = _seats, 
+                SeatsOccupied = _seatsOccupied, 
                 SeatsMax = Parser.ParseInteger(text[1], AnyNumberRegex + BehindMaxRegex),
                 Date = Parser.ParseDateTime(text[0], AheadSquareBracketRegex + AnyDateRegex),
                 Players = _players,
                 Streets = _streets
             };
 
-            // pot - rake 
-            // other checks or throw exception
+            if (_seatsOccupied > table.SeatsMax) throw new FormatException();
 
             return table;
         }

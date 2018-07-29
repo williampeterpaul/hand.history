@@ -36,8 +36,11 @@ namespace hand.history
             var reader = Container.Resolve<IReader>();
             var mapper = Container.Resolve<IMapper<Table>>();
 
-            var data = reader.Read(example).Split("\n\n\n\n").ElementAt(0);
-            var map = mapper.Map(data.Split("\n"));
+            //var data = reader.Read(example).Split("\n\n\n\n").ElementAt(0);
+            //var map = mapper.Map(data.Split("\n"));
+
+            var data = reader.Read(example).Split("\r\n\r\n\r\n\r\n").ElementAt(0);
+            var map = mapper.Map(data.Split("\r\n"));
         }
 
         public static void Main(string[] args)

@@ -19,7 +19,7 @@ namespace hand.history.DataObject
         public string Currency { get; set; }
         public string Title { get; set; }
         public string Game { get; set; }
-        public int Seats { get; set; }
+        public int SeatsOccupied { get; set; }
         public int SeatsMax { get; set; }
 
         public DateTime Date { get; set; }
