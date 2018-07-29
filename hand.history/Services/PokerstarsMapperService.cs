@@ -16,17 +16,21 @@ namespace hand.history.Services
         private const string CurrencyRegex = @"(\d{1,3}(,?\d{3})?(\.\d\d?)?|\(\$?\d{1,3}(,?\d{3})?(\.\d\d?)?\))";
         private const string CurrencyUnitRegex = @"([$]|[£]|[€])";
 
-        private const string AfterColonRegex = @"(?<=:.*)";
-        private const string AfterBracketRegex = @"(?<=(.*)";
-        private const string AfterBracketAltRegex = @"(?<=[.*)";
-        private const string AfterBlindRegex = @"(?<=blind)";
+        private const string AnyCharRegex = @"(.*)";
+        private const string AnyCardRegex = @"([AKQJT]|[0-9])([cdhs])";
+
+        private const string IgnoreTrailingColonRegex = @"(?=\:.*)";
+        private const string IgnoreTrailingBracketRegex = @"(?=\(.*)";
+
+        private const string IgnorePrecedingColonRegex = @"(?<=\:.*)";
+        private const string IgnorePrecedingBracketRegex = @"(?<=\(.*)";
+        private const string IgnorePrecedingSquareBracketRegex = @"(?<=\[.*)";
+        private const string IgnorePrecedingBlindRegex = @"(?<=blind.*)";
 
         private const string StreetVerbPattern = @"(?<=:\s+)\w+";
         private const string StreetUsernamePattern = @".*(?=:)";
-        private const string StreetIdentifierPattern = @"(\*\*\*) (\w+).*[\n|\r|\s]*";
-        private const string StreetCommunityPattern = @"(\[).*(?=[\\n|\r|\s])";
+        private const string StreetIdentifierPattern = @"(\*\*\*).*";
 
-        private const string PlayersUsernamePattern = @"(?<=Seat [0-9]+: )(.+)(?= \()";
         private const string PlayersStackPattern = @"(?<=\(([$]|[£]|[€]))(.+)(?=in)";
 
         private string _id;
@@ -84,8 +88,8 @@ namespace hand.history.Services
                 for (int i = 0; i < Seats; i++)
                 {
                     var current = Text[i + 2];
-                    var username = Parser.ParseString(current, PlayersUsernamePattern);
-                    var stack = Parser.ParseDouble(current, PlayersStackPattern);
+                    var username = Parser.ParseString(current, IgnorePrecedingColonRegex + AnyCharRegex + IgnoreTrailingBracketRegex).Trim();
+                    var stack = Parser.ParseDouble(current, IgnorePrecedingBracketRegex + CurrencyRegex);
 
                     result.Add(new Player { Username = username, Stack = stack, Alive = true, Position = i });
                 }
@@ -105,11 +109,9 @@ namespace hand.history.Services
                 {
                     var streetStart = streetIndexes[i];
                     var streetEnd = streetIndexes[i + 1];
+                    var streetType = (StreetType)i;
 
-                    var street = (StreetType)i;
-                    var community = new List<Card>();
-
-                    var cards = Parser.ParseString(Text[streetStart], StreetCommunityPattern); //todo parse community cards properly
+                    var community = LineToCards(Text[streetStart]);
 
                     var actions = new List<DataObject.Action>();
 
@@ -118,7 +120,6 @@ namespace hand.history.Services
                         var streetLine = Text[j];
                         double amount = 0;
 
-                        // first street, first line always prints user dealt hole cards
                         if (i == 0 && j == streetStart + 1)
                         {
                             // get initial cards for player
@@ -128,42 +129,66 @@ namespace hand.history.Services
                         //todo last line get collected amount and compare to expected, throw exception if fail
                         if (streetLine.Contains("collected"))
                         {
+                            // get player
                             // get amount and add to stack
                             // set alive to true
-                            continue;
+                            break;
                         }
 
-                        var playerText = Parser.ParseString(streetLine, StreetUsernamePattern);
                         var verbText = Parser.ParseString(streetLine, StreetVerbPattern);
+                        var playerText = Parser.ParseString(streetLine, StreetUsernamePattern);
 
-                        var player = Players.Where(x => x.Username.Equals(playerText)).First();
                         var verb = verbText.ToEnum<VerbType>();
+                        var player = Players.Where(x => x.Username.Equals(playerText)).Single();
 
                         // skip doesn't show
 
-                        if (verb == VerbType.Bets || verb == VerbType.Calls) amount = Parser.ParseDouble(streetLine, AfterColonRegex + CurrencyRegex);
                         if (verb == VerbType.Folds || verb == VerbType.Mucks) player.Alive = false;
-                        if (verb == VerbType.Shows) player.Alive = false; //todo get cards shown
+
+                        if (verb == VerbType.Shows)
+                        {
+                            player.Alive = false; //todo get cards shown
+                        }
+
+                        if (verb == VerbType.Bets || verb == VerbType.Calls)
+                        {
+                            amount = Parser.ParseDouble(streetLine, IgnorePrecedingColonRegex + CurrencyRegex);
+                            player.Stack -= amount;
+                        }
+
                         if (verb == VerbType.Raises)
                         {
-                            var raise = Parser.ParseDoubleMulti(streetLine, AfterColonRegex + CurrencyRegex);
+                            var raise = Parser.ParseDoubleMulti(streetLine, IgnorePrecedingColonRegex + CurrencyRegex);
                             amount = raise.ElementAt(1) - raise.ElementAt(0);
+                            player.Stack -= amount;
                         }
 
                         actions.Add(new DataObject.Action { Player = player, Verb = verb, Amount = amount });
                     }
 
-                    result.Add(new Street { Type = street, Community = community, Actions = actions });
+                    result.Add(new Street { Type = streetType, Community = community, Actions = actions });
                 }
 
                 return result;
             }
         }
 
+        public IEnumerable<Card> LineToCards(string text)
+        {
+            var line = Parser.ParseString(text, IgnorePrecedingSquareBracketRegex + AnyCharRegex);
+            var cards = Parser.ParseStringMulti(line, AnyCardRegex);
+
+            return cards.ConvertType(TextToCard);
+        }
+
         public Card TextToCard(string text)
         {
-            if (string.IsNullOrWhiteSpace(text)) throw new ArgumentException("Text is null or whitespace");
             if (text.Length != 2) throw new FormatException("Text is not in the format correct format");
+
+            //var rank = text[0].ToString();
+            //var suit = text[1].ToString();
+
+            //var test = suit.ToEnum<Card.SuitType>();
 
             return new Card { Rank = Card.RankType.Ace, Suit = Card.SuitType.Club };
         }
@@ -182,7 +207,7 @@ namespace hand.history.Services
             //Console.WriteLine("MapTotalRake " + TotalRake); // todo
             //Console.WriteLine("MapSeats " + Seats);
 
-            //var p = Players;
+            var p = Players;
             var k = Rounds;
 
             return new Table();

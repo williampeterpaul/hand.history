@@ -43,5 +43,13 @@ namespace hand.history.Extensions
                 index++;
             }
         }
+
+        public static IEnumerable<T2> ConvertType<T1, T2>(this IEnumerable<T1> items, Func<T1, T2> predicate)
+        {
+            foreach (T1 item in items)
+            {
+                yield return predicate(item);
+            }
+        }
     }
 }
