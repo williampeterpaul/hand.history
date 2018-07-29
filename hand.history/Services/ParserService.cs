@@ -10,10 +10,12 @@ namespace hand.history.Services
     {
         public string ParseString(string value, string pattern) => Parse<string>(value, pattern);
         public double ParseDouble(string value, string pattern) => Parse<double>(value, pattern);
+        public decimal ParseDecimal(string value, string pattern) => Parse<decimal>(value, pattern);
         public int ParseInteger(string value, string pattern) => Parse<int>(value, pattern);
 
         public IEnumerable<string> ParseStringMulti(string value, string pattern) => ParseMulti<string>(value, pattern);
         public IEnumerable<double> ParseDoubleMulti(string value, string pattern) => ParseMulti<double>(value, pattern);
+        public IEnumerable<decimal> ParseDecimalMulti(string value, string pattern) => ParseMulti<decimal>(value, pattern);
         public IEnumerable<int> ParseIntegerMulti(string value, string pattern) => ParseMulti<int>(value, pattern);
 
         public Type Parse<Type>(string value, string pattern)

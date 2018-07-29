@@ -15,20 +15,20 @@ namespace hand.history.Services
 {
     public class LoggerService : ILogger
     {
-        private readonly ILog _logger;
+        private ILog Logger { get; }
 
         public LoggerService()
         {
             XmlConfigurator.Configure(LogManager.GetRepository(Assembly.GetEntryAssembly()), new FileInfo("log4net.config"));
 
-            _logger = LogManager.GetLogger(typeof(LoggerService));
+            Logger = LogManager.GetLogger(typeof(LoggerService));
         }
 
         public LoggerService(string configuration)
         {
             XmlConfigurator.Configure(LogManager.GetRepository(Assembly.GetEntryAssembly()), new FileInfo(configuration));
 
-            _logger = LogManager.GetLogger(typeof(LoggerService));
+            Logger = LogManager.GetLogger(typeof(LoggerService));
         }
 
         public void Log(Level level, string message, object obj)
@@ -42,11 +42,11 @@ namespace hand.history.Services
         {
             switch (level)
             {
-                case Level.Debug: _logger.Debug(message); break;
-                case Level.Information: _logger.Info(message); break;
-                case Level.Warning: _logger.Warn(message); break;
-                case Level.Error: _logger.Error(message); break;
-                case Level.Fatal: _logger.Fatal(message); break;
+                case Level.Debug: Logger.Debug(message); break;
+                case Level.Information: Logger.Info(message); break;
+                case Level.Warning: Logger.Warn(message); break;
+                case Level.Error: Logger.Error(message); break;
+                case Level.Fatal: Logger.Fatal(message); break;
             }
         }
 

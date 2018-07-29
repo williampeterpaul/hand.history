@@ -18,16 +18,18 @@ namespace hand.history.Services
         private const string CurrencyUnitRegex =        @"([$]|[£]|[€])";
         private const string AnyCharRegex =             @"(.*)";
         private const string AnyCardRegex =             @"([AKQJT]|[0-9])([cdhs])";
-        private const string BehindColonRegex =         @"(?=\:.*)";
-        private const string BehindBracketRegex =       @"(?=\(.*)";
         private const string AheadColonRegex =          @"(?<=\:.*)";
         private const string AheadBracketRegex =        @"(?<=\(.*)";
         private const string AheadSquareBracketRegex =  @"(?<=\[.*)";
         private const string AheadBlindRegex =          @"(?<=blind.*)";
-        private const string StreetIdentifierPattern =  @"(\*\*\*).*";
+        private const string AheadCollectedRegex =      @"(?<=collected.*)";
+        private const string BehindColonRegex =         @"(?=\:.*)";
+        private const string BehindBracketRegex =       @"(?=\(.*)";
+        private const string BehindCollectedRegex =     @"(?=collected)";
+        private const string StreetIdentifierRegex =    @"(\*\*\*).*";
 
-        private const string StreetVerbPattern =        @"(?<=:\s+)\w+";
-        private const string DealtToPattern =           @"(?<=Dealt to ).*(?= \[)";
+        private const string StreetVerbRegex =          @"(?<=:\s+)\w+";
+        private const string DealtToRegex =             @"(?<=Dealt to ).*(?= \[)";
 
         private string _id;
         private string _tourneyId;
@@ -53,9 +55,9 @@ namespace hand.history.Services
             Parser = parser;
         }
 
-        private double Id => Parser.ParseDouble(Text[0], "(?<=Hand #)[0-9]{10,}");
+        private decimal Id => Parser.ParseDecimal(Text[0], "(?<=Hand #)[0-9]{10,}");
 
-        private double TournamentId => Parser.ParseDouble(Text[0], "(?<=Tournament #)[0-9]{10,}");
+        private decimal TournamentId => Parser.ParseDecimal(Text[0], "(?<=Tournament #)[0-9]{10,}");
 
         private string Title => Parser.ParseString(Text[1], "'(.*?)'");
 
@@ -63,13 +65,13 @@ namespace hand.history.Services
 
         private string Currency => Parser.ParseString(Text[0], "[$]|[£]|[€]");
 
-        private double BigBlind => Parser.ParseDouble(Text[9], "(?<=blind [$]|[£]|[€])([+-]?\\d*\\.\\d+)(?![-+0-9\\.])");
+        private decimal BigBlind => Parser.ParseDecimal(Text[9], "(?<=blind [$]|[£]|[€])([+-]?\\d*\\.\\d+)(?![-+0-9\\.])");
 
-        private double SmallBlind => Parser.ParseDouble(Text[8], "(?<=blind [$]|[£]|[€])([+-]?\\d*\\.\\d+)(?![-+0-9\\.])");
+        private decimal SmallBlind => Parser.ParseDecimal(Text[8], "(?<=blind [$]|[£]|[€])([+-]?\\d*\\.\\d+)(?![-+0-9\\.])");
 
-        private double TotalPot => Parser.ParseDouble(Text[35], "(?<=Total pot [$]|[£]|[€])([+-]?\\d*\\.\\d+)(?![-+0-9\\.])");
+        private decimal TotalPot => Parser.ParseDecimal(Text[35], "(?<=Total pot [$]|[£]|[€])([+-]?\\d*\\.\\d+)(?![-+0-9\\.])");
 
-        private double TotalRake => Parser.ParseDouble(Text[35], "(?<=Rake [$]|[£]|[€])([+-]?\\d*\\.\\d+)(?![-+0-9\\.])");
+        private decimal TotalRake => Parser.ParseDecimal(Text[35], "(?<=Rake [$]|[£]|[€])([+-]?\\d*\\.\\d+)(?![-+0-9\\.])");
 
         private int Seats => Parser.ParseInteger(Text[1], "(\\d+)(?=-max)");
 
@@ -85,7 +87,7 @@ namespace hand.history.Services
                 {
                     var current = Text[i + 2];
                     var username = Parser.ParseString(current, AheadColonRegex + AnyCharRegex + BehindBracketRegex).Trim();
-                    var stack = Parser.ParseDouble(current, AheadBracketRegex + CurrencyRegex);
+                    var stack = Parser.ParseDecimal(current, AheadBracketRegex + CurrencyRegex);
 
                     result.Add(new Player { Username = username, Stack = stack, Alive = true, Position = i });
                 }
@@ -99,7 +101,7 @@ namespace hand.history.Services
             get
             {
                 var result = new List<Street>();
-                var streetIndexes = Text.FindIndexes(x => Parser.ParseString(x, StreetIdentifierPattern) != string.Empty).ToArray();
+                var streetIndexes = Text.FindIndexes(x => Parser.ParseString(x, StreetIdentifierRegex) != string.Empty).ToArray();
 
                 for (int i = 0; i < streetIndexes.Count() - 1; i++)
                 {
@@ -114,11 +116,10 @@ namespace hand.history.Services
                     for (int j = streetStart + 1; j < streetEnd; j++)
                     {
                         var streetLine = Text[j];
-                        double amount = 0;
 
                         if (i == 0 && j == streetStart + 1)
                         {
-                            var currentPlayerText = Parser.ParseString(streetLine, DealtToPattern);
+                            var currentPlayerText = Parser.ParseString(streetLine, DealtToRegex);
                             var currentPlayer = Players.Where(x => x.Username.Equals(currentPlayerText)).Single();
 
                             currentPlayer.Hand = new Hand() { Cards = TextToCards(streetLine) };
@@ -126,37 +127,7 @@ namespace hand.history.Services
                             continue;
                         }
 
-                        if (streetLine.Contains("collected"))
-                        {
-                            // get player
-                            // get amount and add to stack
-                            // if amount != pot - rake then throw
-                            // set alive to true!
-                            break;
-                        }
-
-                        var verbText = Parser.ParseString(streetLine, StreetVerbPattern);
-                        var playerText = Parser.ParseString(streetLine, AnyCharRegex + BehindColonRegex);
-
-                        var verb = verbText.ToEnum<VerbType>();
-                        var player = Players.Where(x => x.Username.Equals(playerText)).Single();
-
-                        if (verb == VerbType.Folds) player.Alive = false;
-                        if (verb == VerbType.Mucks) player.Alive = false;
-                        if (verb == VerbType.Shows) player.Alive = false; player.Hand = new Hand { Cards = TextToCards(streetLine) };
-                        if (verb == VerbType.Bets || verb == VerbType.Calls)
-                        {
-                            amount = Parser.ParseDouble(streetLine, AheadColonRegex + CurrencyRegex);
-                            player.Stack -= amount;
-                        }
-                        if (verb == VerbType.Raises)
-                        {
-                            var raise = Parser.ParseDoubleMulti(streetLine, AheadColonRegex + CurrencyRegex);
-                            amount = raise.ElementAt(1) - raise.ElementAt(0);
-                            player.Stack -= amount;
-                        }
-
-                        actions.Add(new DataObject.Action { Player = player, Verb = verb, Amount = amount });
+                        actions.Add(TextToAction(streetLine));
                     }
 
                     result.Add(new Street { Type = streetType, Community = community, Actions = actions });
@@ -164,6 +135,60 @@ namespace hand.history.Services
 
                 return result;
             }
+        }
+
+        private DataObject.Action TextToAction(string text)
+        {
+            decimal amount = 0;
+
+            if (text.Contains("collected"))
+            {
+                var player123 = Parser.ParseString(text, AnyCharRegex + BehindCollectedRegex).Trim();
+                var player1 = Players.Where(x => x.Username == player123).Single();
+
+                amount = Parser.ParseDecimal(text, AheadCollectedRegex + CurrencyRegex);
+
+                if (!amount.Equals(TotalPot - TotalRake)) throw new FormatException("Collected amount doesn't equal the total pot minus the rake");
+
+                player1.Stack += amount;
+
+                return default(DataObject.Action);
+            }
+
+            var verbText = Parser.ParseString(text, StreetVerbRegex);
+            var playerText = Parser.ParseString(text, AnyCharRegex + BehindColonRegex);
+
+            var verb = verbText.ToEnum<VerbType>();
+            var player = Players.Where(x => x.Username.Equals(playerText)).Single();
+
+            player.Alive = false;
+
+            if (verb == VerbType.Shows)
+            {
+                player.Hand = new Hand { Cards = TextToCards(text) };
+            }
+
+            if (verb == VerbType.Checks)
+            {
+                player.Alive = true;
+            }
+
+            if (verb == VerbType.Bets || verb == VerbType.Calls)
+            {
+                amount = Parser.ParseDecimal(text, AheadColonRegex + CurrencyRegex);
+                player.Stack -= amount;
+                player.Alive = true;
+            }
+
+            if (verb == VerbType.Raises)
+            {
+                var raise = Parser.ParseDecimalMulti(text, AheadColonRegex + CurrencyRegex);
+                amount = raise.ElementAt(1) - raise.ElementAt(0);
+                player.Stack -= amount;
+                player.Alive = true;
+            }
+
+            return new DataObject.Action { Player = player, Verb = verb, Amount = amount };
         }
 
         public IEnumerable<Card> TextToCards(string text)
