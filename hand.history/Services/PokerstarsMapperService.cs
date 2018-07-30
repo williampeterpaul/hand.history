@@ -12,7 +12,7 @@ using static hand.history.DataObject.Card;
 
 namespace hand.history.Services
 {
-    public class PokerstarsMapperService : IMapper<Table>
+    public sealed class PokerstarsMapperService : IMapper<Table>
     {
         private const string CurrencyRegex = @"(\d{1,3}(,?\d{3})?(\.\d\d?)?|\(\$?\d{1,3}(,?\d{3})?(\.\d\d?)?\))";
         private const string CurrencyUnitRegex = @"([$]|[£]|[€])";
@@ -85,7 +85,7 @@ namespace hand.history.Services
 
             for (int i = 0; i < _streetIndexes.Count() - 1; i++) // exclude summary
             {
-                var streetHeading = _streetIndexes[i];  // exclude title
+                var streetHeading = _streetIndexes[i];
                 var streetStart = _streetIndexes[i] + 1;
                 var streetEnd = _streetIndexes[i + 1];
 
@@ -120,11 +120,9 @@ namespace hand.history.Services
         private DataObject.Action TextToAction(string text)
         {
             decimal amount = 0;
-
-            if (text.Contains("Uncalled")) return null; // dumb
-            if (text.Contains("doesn't")) return null; // dumb
-
-            if (text.Contains("collected"))
+            if (text.Contains("Uncalled")) return null; // not cool
+            if (text.Contains("doesn't")) return null; // not cool
+            if (text.Contains("collected")) // not cool
             {
                 var currentPlayerText = Parser.ParseString(text, AnyCharRegex + BehindCollectedRegex).Trim();
                 var currentPlayer = _players.Where(x => x.Username == currentPlayerText).Single();
@@ -136,12 +134,15 @@ namespace hand.history.Services
                 return default(DataObject.Action);
             }
 
-            var verb = Parser.ParseString(text, StreetVerbRegex).ToEnum<VerbType>();
-            var player = _players.Where(x => x.Username.Equals(Parser.ParseString(text, AnyCharRegex + BehindColonRegex))).Single();
+            var verbText = Parser.ParseString(text, StreetVerbRegex);
+            var playerText = Parser.ParseString(text, AnyCharRegex + BehindColonRegex);
+
+            var verb = verbText.ToEnum<VerbType>();
+            var player = _players.Where(x => x.Username.Equals(playerText)).Single();
 
             player.Alive = false;
 
-            if (verb == VerbType.Shows) 
+            if (verb == VerbType.Shows)
             {
                 player.Hand = new Hand { Cards = TextToCards(text) };
             }
@@ -232,7 +233,7 @@ namespace hand.history.Services
             _sblind = Parser.ParseDecimal(text[_seatsOccupied + 2], AheadBlindRegex + CurrencyRegex);
             _bblind = Parser.ParseDecimal(text[_seatsOccupied + 3], AheadBlindRegex + CurrencyRegex);
 
-            if (_sblind > _bblind) throw new FormatException("Small blind must be less than the big blind");
+            if (_bblind < _sblind) throw new FormatException("Big blind must be greater than the small blind");
 
             _players = GetPlayers(text);
 
@@ -253,7 +254,7 @@ namespace hand.history.Services
                 Currency = Parser.ParseString(text[0], CurrencyUnitRegex),
                 Title = Parser.ParseString(text[1], AheadQuoteRegex + AnyCharRegex + BehindQuoteRegex),
                 Game = Parser.ParseString(text[0], GameIdentifierRegex),
-                SeatsOccupied = _seatsOccupied, 
+                SeatsOccupied = _seatsOccupied,
                 SeatsMax = Parser.ParseInteger(text[1], AnyNumberRegex + BehindMaxRegex),
                 Date = Parser.ParseDateTime(text[0], AheadSquareBracketRegex + AnyDateRegex),
                 Players = _players,

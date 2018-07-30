@@ -28,6 +28,6 @@ namespace hand.history.DataObject
 
         public int StreetCount => Streets.Count();
 
-        public StreetType EndStreet => (StreetType)StreetCount;
+        public StreetType EndStreet => (StreetType)StreetCount - 1;
     }
 }
