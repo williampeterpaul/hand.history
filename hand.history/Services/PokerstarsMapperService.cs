@@ -83,21 +83,22 @@ namespace hand.history.Services
         {
             var result = new List<Street>();
 
-            for (int i = 0; i < _streetIndexes.Count() - 1; i++)
+            for (int i = 0; i < _streetIndexes.Count() - 1; i++) // exclude summary
             {
-                var streetStart = _streetIndexes[i];
+                var streetHeading = _streetIndexes[i];  // exclude title
+                var streetStart = _streetIndexes[i] + 1;
                 var streetEnd = _streetIndexes[i + 1];
 
                 var streetType = (StreetType)i;
 
-                var community = TextToCards(text[streetStart]);
+                var community = TextToCards(text[streetHeading]);
                 var actions = new List<DataObject.Action>();
 
-                for (int j = streetStart + 1; j < streetEnd; j++)
+                for (int j = streetStart; j < streetEnd; j++)
                 {
                     var streetLine = text[j];
 
-                    if (i == 0 && j == streetStart + 1)
+                    if (i == 0 && j == streetStart) // first line first street
                     {
                         var currentPlayerText = Parser.ParseString(streetLine, DealtToRegex);
                         var currentPlayer = _players.Where(x => x.Username.Equals(currentPlayerText)).Single();
@@ -121,6 +122,7 @@ namespace hand.history.Services
             decimal amount = 0;
 
             if (text.Contains("Uncalled")) return null; // dumb
+            if (text.Contains("doesn't")) return null; // dumb
 
             if (text.Contains("collected"))
             {
@@ -238,7 +240,7 @@ namespace hand.history.Services
 
             _streets = GetStreets(text);
 
-            if (_streets.Count() != _streetIndexes.Length) throw new FormatException("Street count must be equal to the street indexes array length");
+            if (_streets.Count() != _streetIndexes.Length - 1) throw new FormatException("Street count must be equal to the street indexes array length");
 
             var table = new Table
             {
@@ -260,7 +262,7 @@ namespace hand.history.Services
 
             if (_seatsOccupied > table.SeatsMax) throw new FormatException("Seats occupied must be less than or equal to the table max");
 
-            var currentEasternTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.Now, TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time"));
+            var currentEasternTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time"));
             if (currentEasternTime < table.Date) throw new FormatException("Date of game must be in the past");
 
             return table;
