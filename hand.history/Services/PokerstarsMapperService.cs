@@ -44,6 +44,8 @@ namespace hand.history.Services
         private const string DealtToRegex = @"(?<=Dealt to ).*(?= \[)";
 
         private int _seatsOccupied;
+        private decimal _sblind;
+        private decimal _bblind;
 
         private int[] _streetIndexes;
         private IEnumerable<Player> _players;
@@ -62,11 +64,16 @@ namespace hand.history.Services
 
             for (int i = 0; i < _seatsOccupied; i++)
             {
-                var current = text[i + 2];
-                var username = Parser.ParseString(current, AheadColonRegex + AnyCharRegex + BehindBracketRegex).Trim();
-                var stack = Parser.ParseDecimal(current, AheadBracketRegex + CurrencyRegex);
+                var currentPlayerText = text[i + 2];
+                var username = Parser.ParseString(currentPlayerText, AheadColonRegex + AnyCharRegex + BehindBracketRegex).Trim();
 
-                result.Add(new Player { Username = username, Stack = stack, Alive = true, Position = i });
+                var startingStack = Parser.ParseDecimal(currentPlayerText, AheadBracketRegex + CurrencyRegex);
+                var instanceStack = startingStack;
+
+                if (i == 1) instanceStack -= _sblind;
+                if (i == 2) instanceStack -= _bblind;
+
+                result.Add(new Player { Username = username, StartingStack = startingStack, InstanceStack = instanceStack, Alive = true, Position = i });
             }
 
             return result;
@@ -122,7 +129,7 @@ namespace hand.history.Services
 
                 amount = Parser.ParseDecimal(text, AheadCollectedRegex + CurrencyRegex);
 
-                currentPlayer.Stack += amount;
+                currentPlayer.InstanceStack += amount;
 
                 return default(DataObject.Action);
             }
@@ -145,7 +152,7 @@ namespace hand.history.Services
             if (verb == VerbType.Bets || verb == VerbType.Calls)
             {
                 amount = Parser.ParseDecimal(text, AheadColonRegex + CurrencyRegex);
-                player.Stack -= amount;
+                player.InstanceStack -= amount;
                 player.Alive = true;
             }
 
@@ -153,7 +160,7 @@ namespace hand.history.Services
             {
                 var raise = Parser.ParseDecimalMulti(text, AheadColonRegex + CurrencyRegex);
                 amount = raise.ElementAt(1) - raise.ElementAt(0);
-                player.Stack -= amount;
+                player.InstanceStack -= amount;
                 player.Alive = true;
             }
 
@@ -170,7 +177,7 @@ namespace hand.history.Services
 
         public Card TextToCard(string text)
         {
-            if (text.Length != 2) throw new FormatException("Text is not in the format correct format! Examples include 9h, As, and Tc");
+            if (text.Length != 2) throw new FormatException("Text must be in the format [Rs] : where R is rank and s is suit for example 9h, As, or Tc");
 
             var result = new Card();
 
@@ -211,30 +218,34 @@ namespace hand.history.Services
 
         public Table Map(string[] text)
         {
+            if (text.Length < 10) throw new FormatException("Text array length is less than the minimum possible length of a game");
+            if (text.Length > 99) throw new FormatException("Text array length is greater than the maximum possible length of a game");
+
             _streetIndexes = text.FindIndexes(x => Parser.ParseString(x, StreetIdentifierRegex).Length > 0).ToArray();
             _seatsOccupied = text.FindIndexes(x => Parser.ParseString(x, SeatIdentifierRegex).Length > 0).Count() / 2;
 
-            // if text length > initial 2 lines + players + blinds + (max streets * players) + street headings + "collected" line + total pot & board + player summaries
-            if (text.Length > (2 + _seatsOccupied + 2 + (6 * _seatsOccupied) + 6 + 1 + 2 + _seatsOccupied)) throw new FormatException();
-            if (text.Length < 0) throw new FormatException();
+            if (_streetIndexes.Length < 2) throw new FormatException("Street indexes array length is less than the minimum possible amount of streets");
+            if (_streetIndexes.Length > 6) throw new FormatException("Street indexes array length is greater than the maximum possible amount of streets");
 
-            if (_streetIndexes.Length > 6) throw new FormatException();
-            if (_streetIndexes.Length < 2) throw new FormatException();
+            _sblind = Parser.ParseDecimal(text[_seatsOccupied + 2], AheadBlindRegex + CurrencyRegex);
+            _bblind = Parser.ParseDecimal(text[_seatsOccupied + 3], AheadBlindRegex + CurrencyRegex);
+
+            if (_sblind > _bblind) throw new FormatException("Small blind must be less than the big blind");
 
             _players = GetPlayers(text);
 
-            if (_players.Count() != _seatsOccupied) throw new FormatException();
+            if (_players.Count() != _seatsOccupied) throw new FormatException("Player count must be equal to the seats occupied");
 
             _streets = GetStreets(text);
 
-            if (_streets.Count() != _streetIndexes.Length) throw new FormatException();
+            if (_streets.Count() != _streetIndexes.Length) throw new FormatException("Street count must be equal to the street indexes array length");
 
             var table = new Table
             {
                 HandId = Parser.ParseDecimalMulti(text[0], AheadHashRegex + AnyNumberRegex).ElementAtOrDefault(0),
                 TournamentId = Parser.ParseDecimalMulti(text[0], AheadHashRegex + AnyNumberRegex).ElementAtOrDefault(1),
-                BBlind = Parser.ParseDecimal(text[_seatsOccupied + 3], AheadBlindRegex + CurrencyRegex),
-                SBlind = Parser.ParseDecimal(text[_seatsOccupied + 2], AheadBlindRegex + CurrencyRegex),
+                SBlind = _sblind,
+                BBlind = _bblind,
                 Pot = Parser.ParseDecimalMulti(text[_streetIndexes.Last() + 1], CurrencyRegex).ElementAtOrDefault(0),
                 Rake = Parser.ParseDecimalMulti(text[_streetIndexes.Last() + 1], CurrencyRegex).ElementAtOrDefault(1),
                 Currency = Parser.ParseString(text[0], CurrencyUnitRegex),
@@ -247,7 +258,10 @@ namespace hand.history.Services
                 Streets = _streets
             };
 
-            if (_seatsOccupied > table.SeatsMax) throw new FormatException();
+            if (_seatsOccupied > table.SeatsMax) throw new FormatException("Seats occupied must be less than or equal to the table max");
+
+            var currentEasternTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.Now, TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time"));
+            if (currentEasternTime < table.Date) throw new FormatException("Date of game must be in the past");
 
             return table;
         }

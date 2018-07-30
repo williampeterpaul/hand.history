@@ -27,7 +27,6 @@ namespace hand.history.DataObject
         public IEnumerable<Street> Streets { get; set; }
 
         public int StreetCount => Streets.Count();
-        public int PlayerCount => Players.Count();
 
         public StreetType EndStreet => (StreetType)StreetCount;
     }
