@@ -6,7 +6,7 @@ namespace hand.history.DataObject
 {
     public class Street
     {
-        public decimal Id { get; set; }
+        public int Id { get; set; }
         public decimal Pot { get; set; }
 
         public StreetType Type { get; set; }

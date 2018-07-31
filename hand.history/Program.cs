@@ -6,6 +6,7 @@ using System;
 using System.Linq;
 using Unity;
 using hand.history.Services.Interfaces;
+using System.Collections.Generic;
 
 namespace hand.history
 {
@@ -36,8 +37,25 @@ namespace hand.history
             var reader = Container.Resolve<IReader>();
             var mapper = Container.Resolve<IMapper<Table>>();
 
-            var data = reader.Read(example).Split("\n\n\n\n").First();
-            var map = mapper.Map(data.Split("\n"));
+            var maps = new List<Table>();
+
+            var dataSet = reader.Read(example).Split("\n\n\n\n");
+            Console.WriteLine(dataSet.Count());
+            foreach (var data in dataSet)
+            {
+                try
+                {
+                    var map = mapper.Map(data.Split("\n"));
+                    maps.Add(map);
+                }
+                catch
+                {
+
+                }
+            }
+
+            Context.Tables.AddRange(maps);
+            Context.SaveChanges();
         }
 
         public static void Main(string[] args)

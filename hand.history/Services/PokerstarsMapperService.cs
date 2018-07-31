@@ -43,9 +43,9 @@ namespace hand.history.Services
         private const string StreetVerbRegex = @"(?<=:\s+)\w+";
         private const string DealtToRegex = @"(?<=Dealt to ).*(?= \[)";
 
-        private int _seatsOccupied;
         private decimal _sblind;
         private decimal _bblind;
+        private int _seatsOccupied;
 
         private int[] _streetIndexes;
         private IEnumerable<Player> _players;

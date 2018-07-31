@@ -6,7 +6,7 @@ namespace hand.history.DataObject
 {
     public class Action
     {
-        public decimal Id { get; set; }
+        public int Id { get; set; }
         public decimal Amount { get; set; }
 
         public Player Player { get; set; }

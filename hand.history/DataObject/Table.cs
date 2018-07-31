@@ -9,7 +9,9 @@ namespace hand.history.DataObject
 {
     public class Table
     {
-        public decimal Id { get; set; }
+        public int Id { get; set; }
+        public int SeatsMax { get; set; }
+        public int SeatsOccupied { get; set; }
         public decimal HandId { get; set; }
         public decimal TournamentId { get; set; }
         public decimal BBlind { get; set; }
@@ -19,8 +21,6 @@ namespace hand.history.DataObject
         public string Currency { get; set; }
         public string Title { get; set; }
         public string Game { get; set; }
-        public int SeatsOccupied { get; set; }
-        public int SeatsMax { get; set; }
 
         public DateTime Date { get; set; }
         public IEnumerable<Player> Players { get; set; }

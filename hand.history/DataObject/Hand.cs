@@ -6,7 +6,7 @@ namespace hand.history.DataObject
 {
     public class Hand : IComparable<Hand>
     {
-        public decimal Id { get; set; }
+        public int Id { get; set; }
 
         public RankType Rank { get; set; }
         public IEnumerable<Card> Cards { get; set; }
