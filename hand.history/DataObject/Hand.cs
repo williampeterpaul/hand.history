@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace hand.history.DataObject
@@ -23,5 +24,7 @@ namespace hand.history.DataObject
         {
             HighCard, Pair, TwoPair, ThreeOfAKind, Straight, Flush, FullHouse, FourOfAKind, StraightFlush, RoyalFlush
         }
+
+        public override string ToString() => string.Join(",", Cards.ToArray().Select(x => x.ToString())); 
     }
 }

@@ -73,7 +73,7 @@ namespace hand.history.Services
                 if (i == 1) instanceStack -= _sblind;
                 if (i == 2) instanceStack -= _bblind;
 
-                result.Add(new Player { Username = username, StartingStack = startingStack, InstanceStack = instanceStack, Alive = true, Position = i });
+                result.Add(new Player { Username = username, StartingStack = startingStack, EndingStack = instanceStack, Alive = true, Position = i });
             }
 
             return result;
@@ -129,7 +129,7 @@ namespace hand.history.Services
 
                 amount = Parser.ParseDecimal(text, AheadCollectedRegex + CurrencyRegex);
 
-                currentPlayer.InstanceStack += amount;
+                currentPlayer.EndingStack += amount;
 
                 return default(DataObject.Action);
             }
@@ -155,7 +155,7 @@ namespace hand.history.Services
             if (verb == VerbType.Bets || verb == VerbType.Calls)
             {
                 amount = Parser.ParseDecimal(text, AheadColonRegex + CurrencyRegex);
-                player.InstanceStack -= amount;
+                player.EndingStack -= amount;
                 player.Alive = true;
             }
 
@@ -163,7 +163,7 @@ namespace hand.history.Services
             {
                 var raise = Parser.ParseDecimalMulti(text, AheadColonRegex + CurrencyRegex);
                 amount = raise.ElementAt(1) - raise.ElementAt(0);
-                player.InstanceStack -= amount;
+                player.EndingStack -= amount;
                 player.Alive = true;
             }
 
@@ -263,8 +263,8 @@ namespace hand.history.Services
 
             if (_seatsOccupied > table.SeatsMax) throw new FormatException("Seats occupied must be less than or equal to the table max");
 
-            var currentEasternTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time"));
-            if (currentEasternTime < table.Date) throw new FormatException("Date of game must be in the past");
+            // var currentEasternTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time"));
+            // if (currentEasternTime < table.Date) throw new FormatException("Date of game must be in the past");
 
             return table;
         }

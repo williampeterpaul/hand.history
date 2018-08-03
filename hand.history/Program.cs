@@ -39,23 +39,11 @@ namespace hand.history
 
             var maps = new List<Table>();
 
-            var dataSet = reader.Read(example).Split("\n\n\n\n");
-            Console.WriteLine(dataSet.Count());
-            foreach (var data in dataSet)
-            {
-                try
-                {
-                    var map = mapper.Map(data.Split("\n"));
-                    maps.Add(map);
-                }
-                catch
-                {
+            var dataSet = reader.Read(example).Split("\n\n\n\n").First();
+            var map = mapper.Map(dataSet.Split("\n"));
 
-                }
-            }
-
-            Context.Tables.AddRange(maps);
-            Context.SaveChanges();
+            // Context.Tables.Add(map);
+            // Context.SaveChanges();
         }
 
         public static void Main(string[] args)

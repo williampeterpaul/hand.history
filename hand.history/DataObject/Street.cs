@@ -17,5 +17,7 @@ namespace hand.history.DataObject
         {
             Preflop, Flop, Turn, River, Showdown
         }
+
+        public override string ToString() => $"{Type}";
     }
 }

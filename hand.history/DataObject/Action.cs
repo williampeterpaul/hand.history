@@ -16,5 +16,7 @@ namespace hand.history.DataObject
         {
             Folds, Checks, Calls, Bets, Raises, Shows, Mucks
         }
+
+        public override string ToString() => $"{Player} - {Verb}";
     }
 }

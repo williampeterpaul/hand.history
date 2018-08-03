@@ -28,5 +28,7 @@ namespace hand.history.DataObject
         {
             Club, Diamond, Heart, Spade
         }
+
+        public override string ToString() => $"{Suit} {Rank}"; 
     }
 }

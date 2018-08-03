@@ -9,10 +9,12 @@ namespace hand.history.DataObject
         public int Id { get; set; }
         public int Position { get; set; }
         public decimal StartingStack { get; set; }
-        public decimal InstanceStack { get; set; }
+        public decimal EndingStack { get; set; }
         public string Username { get; set; }
         public bool Alive { get; set; }
 
         public Hand Hand { get; set; }
+
+        public override string ToString() => $"{Username} - {EndingStack}";
     }
 }
