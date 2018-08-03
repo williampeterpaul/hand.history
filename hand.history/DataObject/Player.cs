@@ -15,6 +15,6 @@ namespace hand.history.DataObject
 
         public Hand Hand { get; set; }
 
-        public override string ToString() => $"{Username} - {EndingStack}";
+        public override string ToString() => $"{Username} {EndingStack - StartingStack}";
     }
 }

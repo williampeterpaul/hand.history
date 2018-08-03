@@ -25,6 +25,6 @@ namespace hand.history.DataObject
             HighCard, Pair, TwoPair, ThreeOfAKind, Straight, Flush, FullHouse, FourOfAKind, StraightFlush, RoyalFlush
         }
 
-        public override string ToString() => string.Join(",", Cards.ToArray().Select(x => x.ToString())); 
+        public override string ToString() => string.Join(", ", Cards.ToArray().Select(x => x.ToString())); 
     }
 }
