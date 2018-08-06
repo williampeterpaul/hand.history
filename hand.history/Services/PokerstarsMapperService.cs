@@ -263,6 +263,16 @@ namespace hand.history.Services
 
             if (_seatsOccupied > table.SeatsMax) throw new FormatException("Seats occupied must be less than or equal to the table max");
 
+            var winners = _players.Where(x => x.Alive);
+            decimal accumulative = 0;
+
+            foreach(var winner in winners)
+            {
+                accumulative += (winner.EndingStack - winner.StartingStack);
+            }
+
+            if(accumulative != table.Pot - table.Rake) throw new FormatException("Total pot - rake doesn't equal the cumulative winning value");
+
             // var currentEasternTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time"));
             // if (currentEasternTime < table.Date) throw new FormatException("Date of game must be in the past");
 

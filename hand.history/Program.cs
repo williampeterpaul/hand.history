@@ -37,13 +37,8 @@ namespace hand.history
             var reader = Container.Resolve<IReader>();
             var mapper = Container.Resolve<IMapper<Table>>();
 
-            var maps = new List<Table>();
-
             var dataSet = reader.Read(example).Split("\n\n\n\n").First();
             var map = mapper.Map(dataSet.Split("\n"));
-
-            // Context.Tables.Add(map);
-            // Context.SaveChanges();
         }
 
         public static void Main(string[] args)
