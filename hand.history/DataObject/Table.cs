@@ -11,7 +11,7 @@ namespace hand.history.DataObject
     {
         public int Id { get; set; }
         public int SeatsMax { get; set; }
-        public int SeatsOccupied { get; set; }
+        public int SeatsActual { get; set; }
         public decimal HandId { get; set; }
         public decimal TournamentId { get; set; }
         public decimal BBlind { get; set; }

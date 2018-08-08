@@ -43,9 +43,11 @@ namespace hand.history.Services
         private const string StreetVerbRegex = @"(?<=:\s+)\w+";
         private const string DealtToRegex = @"(?<=Dealt to ).*(?= \[)";
 
+        private decimal _pot;
         private decimal _sblind;
         private decimal _bblind;
-        private int _seatsOccupied;
+        private decimal _stackDelta;
+        private int _seatsActual;
 
         private int[] _streetIndexes;
         private IEnumerable<Player> _players;
@@ -62,7 +64,7 @@ namespace hand.history.Services
         {
             var result = new List<Player>();
 
-            for (int i = 0; i < _seatsOccupied; i++)
+            for (int i = 0; i < _seatsActual; i++)
             {
                 var currentPlayerText = text[i + 2];
                 var username = Parser.ParseString(currentPlayerText, AheadColonRegex + AnyCharRegex + BehindBracketRegex).Trim();
@@ -73,7 +75,7 @@ namespace hand.history.Services
                 if (i == 1) instanceStack -= _sblind;
                 if (i == 2) instanceStack -= _bblind;
 
-                result.Add(new Player { Username = username, StartingStack = startingStack, EndingStack = instanceStack, Alive = true, Position = i });
+                result.Add(new Player { Username = username, StartingStack = startingStack, InstanceStack = instanceStack, Alive = true, Position = i });
             }
 
             return result;
@@ -103,7 +105,7 @@ namespace hand.history.Services
                         var currentPlayerText = Parser.ParseString(streetLine, DealtToRegex);
                         var currentPlayer = _players.Where(x => x.Username.Equals(currentPlayerText)).Single();
 
-                        currentPlayer.Hand = new Hand() { Cards = TextToCards(streetLine) };
+                        currentPlayer.Hand = new Hand { Cards = TextToCards(streetLine) };
 
                         continue;
                     }
@@ -119,7 +121,8 @@ namespace hand.history.Services
 
         private DataObject.Action TextToAction(string text)
         {
-            decimal amount = 0;
+            decimal result = 0;
+
             if (text.Contains("Uncalled")) return null; // not cool
             if (text.Contains("doesn't")) return null; // not cool
             if (text.Contains("collected")) // not cool
@@ -127,9 +130,9 @@ namespace hand.history.Services
                 var currentPlayerText = Parser.ParseString(text, AnyCharRegex + BehindCollectedRegex).Trim();
                 var currentPlayer = _players.Where(x => x.Username == currentPlayerText).Single();
 
-                amount = Parser.ParseDecimal(text, AheadCollectedRegex + CurrencyRegex);
+                result = Parser.ParseDecimal(text, AheadCollectedRegex + CurrencyRegex);
 
-                currentPlayer.EndingStack += amount;
+                //currentPlayer.InstanceStack = currentPlayer.StartingStack + result;
 
                 return default(DataObject.Action);
             }
@@ -154,20 +157,20 @@ namespace hand.history.Services
 
             if (verb == VerbType.Bets || verb == VerbType.Calls)
             {
-                amount = Parser.ParseDecimal(text, AheadColonRegex + CurrencyRegex);
-                player.EndingStack -= amount;
+                result = Parser.ParseDecimal(text, AheadColonRegex + CurrencyRegex);
+                player.InstanceStack -= result;
                 player.Alive = true;
             }
 
             if (verb == VerbType.Raises)
             {
                 var raise = Parser.ParseDecimalMulti(text, AheadColonRegex + CurrencyRegex);
-                amount = raise.ElementAt(1) - raise.ElementAt(0);
-                player.EndingStack -= amount;
+                result = raise.ElementAt(1) - raise.ElementAt(0);
+                player.InstanceStack -= result;
                 player.Alive = true;
             }
 
-            return new DataObject.Action { Player = player, Verb = verb, Amount = amount };
+            return new DataObject.Action { Player = player, Verb = verb, Amount = result };
         }
 
         public IEnumerable<Card> TextToCards(string text)
@@ -225,19 +228,19 @@ namespace hand.history.Services
             if (text.Length > 99) throw new FormatException("Text array length is greater than the maximum possible length of a game");
 
             _streetIndexes = text.FindIndexes(x => Parser.ParseString(x, StreetIdentifierRegex).Length > 0).ToArray();
-            _seatsOccupied = text.FindIndexes(x => Parser.ParseString(x, SeatIdentifierRegex).Length > 0).Count() / 2;
+            _seatsActual = text.FindIndexes(x => Parser.ParseString(x, SeatIdentifierRegex).Length > 0).Count() / 2;
 
             if (_streetIndexes.Length < 2) throw new FormatException("Street indexes array length is less than the minimum possible amount of streets");
             if (_streetIndexes.Length > 6) throw new FormatException("Street indexes array length is greater than the maximum possible amount of streets");
 
-            _sblind = Parser.ParseDecimal(text[_seatsOccupied + 2], AheadBlindRegex + CurrencyRegex);
-            _bblind = Parser.ParseDecimal(text[_seatsOccupied + 3], AheadBlindRegex + CurrencyRegex);
+            _sblind = Parser.ParseDecimal(text[_seatsActual + 2], AheadBlindRegex + CurrencyRegex);
+            _bblind = Parser.ParseDecimal(text[_seatsActual + 3], AheadBlindRegex + CurrencyRegex);
 
             if (_bblind < _sblind) throw new FormatException("Big blind must be greater than the small blind");
 
             _players = GetPlayers(text);
 
-            if (_players.Count() != _seatsOccupied) throw new FormatException("Player count must be equal to the seats occupied");
+            if (_players.Count() != _seatsActual) throw new FormatException("Player count must be equal to the seats occupied");
 
             _streets = GetStreets(text);
 
@@ -254,24 +257,18 @@ namespace hand.history.Services
                 Currency = Parser.ParseString(text[0], CurrencyUnitRegex),
                 Title = Parser.ParseString(text[1], AheadQuoteRegex + AnyCharRegex + BehindQuoteRegex),
                 Game = Parser.ParseString(text[0], GameIdentifierRegex),
-                SeatsOccupied = _seatsOccupied,
+                SeatsActual = _seatsActual,
                 SeatsMax = Parser.ParseInteger(text[1], AnyNumberRegex + BehindMaxRegex),
                 Date = Parser.ParseDateTime(text[0], AheadSquareBracketRegex + AnyDateRegex),
                 Players = _players,
                 Streets = _streets
             };
 
-            if (_seatsOccupied > table.SeatsMax) throw new FormatException("Seats occupied must be less than or equal to the table max");
+            if (_seatsActual > table.SeatsMax) throw new FormatException("Seats occupied must be less than or equal to the table max");
 
-            var winners = _players.Where(x => x.Alive);
-            decimal accumulative = 0;
+            _stackDelta = _players.Sum(x => x.StartingStack - x.InstanceStack);
 
-            foreach(var winner in winners)
-            {
-                accumulative += (winner.EndingStack - winner.StartingStack);
-            }
-
-            if(accumulative != table.Pot - table.Rake) throw new FormatException("Total pot - rake doesn't equal the cumulative winning value");
+            if(_stackDelta != table.Pot) throw new FormatException("Winning players' increase must equal the pot");
 
             // var currentEasternTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time"));
             // if (currentEasternTime < table.Date) throw new FormatException("Date of game must be in the past");
