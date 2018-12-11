@@ -110,6 +110,18 @@ namespace hand.history.Services
                         continue;
                     }
 
+                    var alives = _players.Where(x => x.Alive);
+
+                    if (alives.Count() == 1)
+                    {
+                        var lastAlive = alives.First();
+                        var stackDifference = lastAlive.StartingStack - lastAlive.InstanceStack;
+                        
+                        lastAlive.InstanceStack = lastAlive.StartingStack + stackDifference;
+
+                        break;
+                    }
+
                     actions.Add(TextToAction(streetLine));
                 }
 
@@ -122,20 +134,6 @@ namespace hand.history.Services
         private DataObject.Action TextToAction(string text)
         {
             decimal result = 0;
-
-            if (text.Contains("Uncalled")) return null; // not cool
-            if (text.Contains("doesn't")) return null; // not cool
-            if (text.Contains("collected")) // not cool
-            {
-                var currentPlayerText = Parser.ParseString(text, AnyCharRegex + BehindCollectedRegex).Trim();
-                var currentPlayer = _players.Where(x => x.Username == currentPlayerText).Single();
-
-                result = Parser.ParseDecimal(text, AheadCollectedRegex + CurrencyRegex);
-
-                //currentPlayer.InstanceStack = currentPlayer.StartingStack + result;
-
-                return default(DataObject.Action);
-            }
 
             var verbText = Parser.ParseString(text, StreetVerbRegex);
             var playerText = Parser.ParseString(text, AnyCharRegex + BehindColonRegex);
@@ -236,7 +234,7 @@ namespace hand.history.Services
             _sblind = Parser.ParseDecimal(text[_seatsActual + 2], AheadBlindRegex + CurrencyRegex);
             _bblind = Parser.ParseDecimal(text[_seatsActual + 3], AheadBlindRegex + CurrencyRegex);
 
-            if (_bblind < _sblind) throw new FormatException("Big blind must be greater than the small blind");
+            if (_bblind < _sblind) throw new FormatException("Big blind must be greater than or equal to the small blind");
 
             _players = GetPlayers(text);
 
@@ -268,10 +266,7 @@ namespace hand.history.Services
 
             _stackDelta = _players.Sum(x => x.StartingStack - x.InstanceStack);
 
-            if(_stackDelta != table.Pot) throw new FormatException("Winning players' increase must equal the pot");
-
-            // var currentEasternTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time"));
-            // if (currentEasternTime < table.Date) throw new FormatException("Date of game must be in the past");
+            if (_stackDelta != (table.Pot - table.Rake)) throw new FormatException("Winning players' increase must equal the pot minus the rake");
 
             return table;
         }
