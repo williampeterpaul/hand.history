@@ -10,7 +10,11 @@ namespace hand.history.Extensions
     {
         public static T ToEnum<T>(this string value)
         {
-            return (T)Enum.Parse(typeof(T), value, true);
+            var parsable = Enum.TryParse(typeof(T), value, true, out object result);
+
+            if (parsable) return (T)result;
+
+            return default(T);
         }
     }
 }

@@ -8,7 +8,7 @@ namespace hand.history.DataAccess
 {
     public class ApplicationContext : DbContext
     {
-        public DbSet<DataObject.Action> Actions { get; set; }
+        public DbSet<Move> Moves { get; set; }
         public DbSet<Player> Players { get; set; }
         public DbSet<Street> Rounds { get; set; }
         public DbSet<Table> Tables { get; set; }

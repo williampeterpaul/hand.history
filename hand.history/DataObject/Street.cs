@@ -11,7 +11,7 @@ namespace hand.history.DataObject
 
         public StreetType Type { get; set; }
         public IEnumerable<Card> Community { get; set; }
-        public IEnumerable<Action> Actions { get; set; }
+        public IEnumerable<Move> Moves { get; set; }
 
         public enum StreetType
         {

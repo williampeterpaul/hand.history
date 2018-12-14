@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using static hand.history.DataObject.Action;
+using static hand.history.DataObject.Move;
 using static hand.history.DataObject.Street;
 using hand.history.Services.Interfaces;
 using static hand.history.DataObject.Card;
@@ -43,7 +43,6 @@ namespace hand.history.Services
         private const string StreetVerbRegex = @"(?<=:\s+)\w+";
         private const string DealtToRegex = @"(?<=Dealt to ).*(?= \[)";
 
-        private decimal _pot;
         private decimal _sblind;
         private decimal _bblind;
         private decimal _stackDelta;
@@ -85,7 +84,7 @@ namespace hand.history.Services
         {
             var result = new List<Street>();
 
-            for (int i = 0; i < _streetIndexes.Count() - 1; i++) // exclude summary
+            for (int i = 0; i < _streetIndexes.Length - 1; i++) // exclude summary
             {
                 var streetHeading = _streetIndexes[i];
                 var streetStart = _streetIndexes[i] + 1;
@@ -94,13 +93,13 @@ namespace hand.history.Services
                 var streetType = (StreetType)i;
 
                 var community = TextToCards(text[streetHeading]);
-                var actions = new List<DataObject.Action>();
+                var moves = new List<Move>();
 
                 for (int j = streetStart; j < streetEnd; j++)
                 {
                     var streetLine = text[j];
 
-                    if (i == 0 && j == streetStart) // first line first street
+                    if (i == 0 && j == streetStart) // start game
                     {
                         var currentPlayerText = Parser.ParseString(streetLine, DealtToRegex);
                         var currentPlayer = _players.Where(x => x.Username.Equals(currentPlayerText)).Single();
@@ -110,28 +109,20 @@ namespace hand.history.Services
                         continue;
                     }
 
-                    var alives = _players.Where(x => x.Alive);
+                    var currentMove = TextToMove(streetLine);
 
-                    if (alives.Count() == 1)
-                    {
-                        var lastAlive = alives.First();
-                        var stackDifference = lastAlive.StartingStack - lastAlive.InstanceStack;
-                        
-                        lastAlive.InstanceStack = lastAlive.StartingStack + stackDifference;
+                    if (currentMove == null) break;
 
-                        break;
-                    }
-
-                    actions.Add(TextToAction(streetLine));
+                    moves.Add(currentMove);
                 }
 
-                result.Add(new Street { Type = streetType, Community = community, Actions = actions });
+                result.Add(new Street { Type = streetType, Community = community, Moves = moves });
             }
 
             return result;
         }
 
-        private DataObject.Action TextToAction(string text)
+        private Move TextToMove(string text)
         {
             decimal result = 0;
 
@@ -139,7 +130,12 @@ namespace hand.history.Services
             var playerText = Parser.ParseString(text, AnyCharRegex + BehindColonRegex);
 
             var verb = verbText.ToEnum<VerbType>();
-            var player = _players.Where(x => x.Username.Equals(playerText)).Single();
+
+            if (verb == default(VerbType)) return null;
+
+            var player = _players.Where(x => x.Username.Equals(playerText)).SingleOrDefault();
+
+            if (player == default(Player)) return null;
 
             player.Alive = false;
 
@@ -168,7 +164,7 @@ namespace hand.history.Services
                 player.Alive = true;
             }
 
-            return new DataObject.Action { Player = player, Verb = verb, Amount = result };
+            return new Move { Player = player, Verb = verb, Amount = result };
         }
 
         public IEnumerable<Card> TextToCards(string text)
@@ -264,9 +260,11 @@ namespace hand.history.Services
 
             if (_seatsActual > table.SeatsMax) throw new FormatException("Seats occupied must be less than or equal to the table max");
 
-            _stackDelta = _players.Sum(x => x.StartingStack - x.InstanceStack);
+            // _stackDelta = _players.Sum(x => x.StartingStack - x.InstanceStack);
 
-            if (_stackDelta != (table.Pot - table.Rake)) throw new FormatException("Winning players' increase must equal the pot minus the rake");
+            // if (_stackDelta != 0) throw new FormatException("Net stack differences must equal zero");
+
+            // throw new FormatException("Winning players' increase must equal the pot minus the rake");
 
             return table;
         }
